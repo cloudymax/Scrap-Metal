@@ -93,9 +93,7 @@ create_ssh_key(){
     -t rsa 1> /dev/null
 
   export VM_KEY_FILE=$(find "$(cd ..; pwd)" -name "${VM_ADMIN}")
-  echo $VM_KEY_FILE
   export VM_KEY=$(cat "${VM_KEY_FILE}".pub)
-  echo $VM_KEY
   log " - Done."
 
 }
@@ -120,7 +118,7 @@ users:
     sudo: ALL=(ALL) NOPASSWD:ALL
     shell: /bin/bash
     lock_passwd: false
-    passwd: "${PASSWD}"
+    passwd: ${PASSWD}
     ssh_import_id:
       - gh:${GITHUB_USER}
   - name: ${VM_ADMIN}
@@ -163,7 +161,7 @@ users:
     sudo: ALL=(ALL) NOPASSWD:ALL
     shell: /bin/bash
     lock_passwd: false
-    passwd: "${PASSWD}"
+    passwd: ${PASSWD}
     ssh_import_id:
       - gh:${GITHUB_USER}
   - name: ${VM_USER}
@@ -175,6 +173,11 @@ users:
     passwd: ${PASSWD}
     ssh_authorized_keys:
       - ${VM_KEY}
+runcmd:
+  - sed -i -e '/^Port/s/^.*$/Port 22/' /etc/ssh/sshd_config
+  - sed -i -e '/^PermitRootLogin/s/^.*$/PermitRootLogin yes/' /etc/ssh/sshd_config
+  - sed -i -e '/^PasswordAuthentication/s/^.*$/PasswordAuthentication yes/' /etc/ssh/sshd_config
+  - systemctl restart sshd
 EOF
 
 log " - Done."
@@ -194,7 +197,7 @@ users:
     sudo: ALL=(ALL) NOPASSWD:ALL
     shell: /bin/bash
     lock_passwd: false
-    passwd: "${PASSWD}"
+    passwd: ${PASSWD}
     ssh_import_id:
       - gh:${GITHUB_USER}
   - name: ${VM_USER}
