@@ -10,7 +10,8 @@ deps(){
         virtinst ovmf \
         qemu-utils \
         cloud-image-utils \
-        ubuntu-drivers-common
+        ubuntu-drivers-common \
+        whois
 }
 
 # VM metadata
@@ -352,7 +353,7 @@ boot_windows_vm(){
 
 create_user_data(){
   log "👤 Generating user data"
-  bash /home/max/pxeless/virtual-machines/user-data.sh --update --upgrade \
+  bash ../user-data.sh --update --upgrade --slim\
     --password "${PASSWD}" \
     --github-username "$GITHUB_USER" \
     --username "$USER" \
