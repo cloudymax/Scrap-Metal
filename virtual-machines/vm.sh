@@ -4,6 +4,15 @@ log() {
     echo >&2 -e "[$(date +"%Y-%m-%d %H:%M:%S")] ${1-}"
 }
 
+deps(){
+    sudo apt-get install -y qemu-kvm \
+        bridge-utils \
+        virtinst ovmf \
+        qemu-utils \
+        cloud-image-utils \
+        ubuntu-drivers-common
+}
+
 # VM metadata
 export_metatdata(){
   export IMAGE_TYPE="img" #img or iso
@@ -12,7 +21,7 @@ export_metatdata(){
   export GITHUB_USER="cloudymax"
   export USER="max"
   export DISK_NAME="boot.img"
-  export DISK_SIZE="32G"
+  export DISK_SIZE="16G"
   export MEMORY="8G"
   export SOCKETS="1"
   export PHYSICAL_CORES="2"
