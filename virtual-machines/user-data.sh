@@ -93,8 +93,9 @@ create_ssh_key(){
     -t rsa 1> /dev/null
 
   export VM_KEY_FILE=$(find "$(cd ..; pwd)" -name "${VM_ADMIN}")
-  export VM_KEY=$(cat "${VM_ADMIN}".pub)
-
+  echo $VM_KEY_FILE
+  export VM_KEY=$(cat "${VM_KEY_FILE}".pub)
+  echo $VM_KEY
   log " - Done."
 
 }
