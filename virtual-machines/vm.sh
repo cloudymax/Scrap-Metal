@@ -22,10 +22,10 @@ export_metatdata(){
   export GITHUB_USER="cloudymax"
   export USER="max"
   export DISK_NAME="boot.img"
-  export DISK_SIZE="16G"
-  export MEMORY="8G"
+  export DISK_SIZE="8G"
+  export MEMORY="4G"
   export SOCKETS="1"
-  export PHYSICAL_CORES="2"
+  export PHYSICAL_CORES="1"
   export THREADS="2"
   export VM_KEY=""
   export VM_KEY_FILE="$VM_USER"
@@ -72,7 +72,7 @@ set_gpu(){
 # select a cloud image to download
 select_image(){
   log "🌧 Selecting a cloud image to download"
-  export ISO_FILE="/home/${USER}/pxeless/virtual-machines/qemu/debian-live-11.3.0-amd64-cinnamon.iso"
+  #export ISO_FILE="/home/${USER}/repos/pxeless/ubuntu-autoinstall.iso"
   export UBUNTU_CODENAME="jammy"
   export CLOUD_IMAGE_NAME="${UBUNTU_CODENAME}-server-cloudimg-amd64"
   export CLOUD_IMAGE_URL="https://cloud-images.ubuntu.com/jammy/current"
@@ -360,7 +360,7 @@ create_user_data(){
     --vm-name "$VM_NAME"
 }
 
-create_windows(){
+create-windows-vm(){
   export_metatdata
   set_network
   select_image
@@ -371,7 +371,7 @@ create_windows(){
   tmux_to_vm
 }
 
-boot_windows(){
+boot-windows-vm(){
   export_metatdata
   set_network
   select_image
@@ -381,7 +381,7 @@ boot_windows(){
   tmux_to_vm
 }
 
-create(){
+create-cloud-vm(){
   export_metatdata
   set_network
   select_image
@@ -392,20 +392,40 @@ create(){
   create_user_data
   generate_seed_iso
   create_virtual_disk
-  #create_vm_from_iso
   create_ubuntu_cloud_vm
-  #ssh_to_vm
 }
 
-boot(){
+create-from-iso(){
+  ISO_FILE=$1
+  export_metatdata
+  set_network
+  select_image
+  set_gpu
+  create_dir
+  create_user_data
+  generate_seed_iso
+  create_virtual_disk
+  create_vm_from_iso
+}
+
+boot-cloud-vm(){
   export_metatdata
   set_network
   select_image
   set_gpu
   create_dir
   boot_ubuntu_cloud_vm
-  #boot_vm_from_iso
   tmux_to_vm
+}
+
+boot-iso-vm(){
+ export_metatdata
+ set_network
+ select_image
+ set_gpu
+ create_dir
+ boot_vm_from_iso
+ tmux_to_vm
 }
 
 "$@"
