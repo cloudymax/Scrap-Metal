@@ -1,7 +1,7 @@
 network:
   ethernets:
-    enp0s3:
-      dhcp4: yes
+    enp0s2:
+      dhcp4: no
       dhcp6: no
       addresses: [192.168.50.101/24]
       routes:
