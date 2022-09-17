@@ -1,0 +1,14 @@
+network:
+  ethernets:
+    enp0s3:
+      dhcp4: yes
+      dhcp6: no
+      addresses: [192.168.50.101/24]
+      routes:
+        - to: default
+          via: 192.168.50.1
+      mtu: 1500
+      nameservers:
+        addresses: [192.168.50.50]
+  renderer: networkd
+  version: 2
