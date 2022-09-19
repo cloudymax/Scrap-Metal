@@ -155,6 +155,8 @@ cat > user-data <<EOF
 hostname: ${VM_NAME}
 fqdn: ${VM_NAME}
 disable_root: false
+network:
+  config: disabled
 users:
   - name: ${USER}
     groups: users, admin, docker, sudo
@@ -173,7 +175,28 @@ users:
     passwd: ${PASSWD}
     ssh_authorized_keys:
       - ${VM_KEY}
+write_files:
+- path: /etc/netplan/99-my-new-config.yaml
+  permissions: '0644'
+  content: |
+    network:
+      ethernets:
+        enp0s2:
+          dhcp4: no
+          dhcp6: no
+          addresses: [192.168.50.101/24]
+          routes:
+            - to: default
+              via: 192.168.50.1
+          mtu: 1500
+          nameservers:
+            addresses: [192.168.50.50]
+      renderer: networkd
+      version: 2
 runcmd:
+  - rm /etc/netplan/50-cloud-init.yaml
+  - netplan --debug generate
+  - netplan --debug apply
   - sed -i -e '/^Port/s/^.*$/Port 22/' /etc/ssh/sshd_config
   - sed -i -e '/^PermitRootLogin/s/^.*$/PermitRootLogin yes/' /etc/ssh/sshd_config
   - sed -i -e '/^PasswordAuthentication/s/^.*$/PasswordAuthentication yes/' /etc/ssh/sshd_config
