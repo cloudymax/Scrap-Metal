@@ -37,20 +37,28 @@ The process for preparing the Host for GPU passthrough is best-effort, there are
 through
  
 
-## Guest
+## Guests
 
+Scrap-Metal supports Linux and Windows guests. MacOS guests are WIP.
+Both Cloud and Live-Install images are supported.
 
+### Ubuntu Cloud Images
 
-
-Commands:
 ```bash
 ./vm.sh create-cloud-vm
 ./vm.sh boot-cloud-vm
+```
 
+### Live-Installer Images
 
+```bash
 ./vm.sh create-from-iso <path-to-iso>
 ./vm.sh boot-iso-vm
-  
+```
+
+### Windows Images
+
+```bash
 ./vm.sh create-windows-vm
 ./vm.sh boot-windows-vm
 ```
