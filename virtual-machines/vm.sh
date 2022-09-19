@@ -25,7 +25,7 @@ export_metatdata(){
   export DISK_SIZE="8G"
   export MEMORY="4G"
   export SOCKETS="1"
-  export PHYSICAL_CORES="1"
+  export PHYSICAL_CORES="2"
   export THREADS="2"
   export VM_KEY=""
   export VM_KEY_FILE="$VM_USER"
@@ -39,6 +39,7 @@ export_metatdata(){
 set_network(){
   log "📞 Setting networking options."
   export STATIC_IP="true"
+  export STATIC_IP_ADDRESS="192.168.50.101"
   export HOST_ADDRESS="192.168.50.100"
   export HOST_SSH_PORT="22"
   export VM_SSH_PORT="1234"
