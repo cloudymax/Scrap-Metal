@@ -38,7 +38,7 @@ export_metatdata(){
 # set network options
 set_network(){
   log "📞 Setting networking options."
-  export STATIC_IP="false"
+  export STATIC_IP="true"
   export HOST_ADDRESS="192.168.50.100"
   export HOST_SSH_PORT="22"
   export VM_SSH_PORT="1234"
@@ -46,12 +46,12 @@ set_network(){
 
   if [[ "$STATIC_IP" == "true" ]]; then
     log " - Static IP selected."
-    export NETDEV="-netdev bridge,br=br0,id=net0 \\"
-    export DEVICE="-device virtio-net-pci,netdev=net0,mac=$MAC_ADDR \\"
+    export DEVICE="-device virtio-net-pci,netdev=network0,mac=$MAC_ADDR \\"
+    export NETDEV="-netdev tap,id=network0,ifname=tap0,script=no,downscript=no \\"
   else
     log " - Port Forwarding selected."
-    export NETDEV="-device virtio-net-pci,netdev=net0 \\"
-    export DEVICE="-netdev user,id=net0,hostfwd=tcp::"${VM_SSH_PORT}"-:"${HOST_SSH_PORT}" \\"
+    export DEVICE="-device virtio-net-pci,netdev=net0 \\"
+    export NETDEV="-netdev user,id=net0,hostfwd=tcp::"${VM_SSH_PORT}"-:"${HOST_SSH_PORT}" \\"
   fi
 }
 
@@ -67,6 +67,12 @@ set_gpu(){
     export PCI_GPU="-device vfio-pci,host=02:00.0,multifunction=on,x-vga=on \\"
     log " - GPU attached"
   fi
+}
+
+# set VNC options
+set_vnc(){
+  export KEYBOARD="en-us"
+  export VNC_OPTIONS="-vnc $HOST_ADDRESS:$VNC_PORT -k $KEYBOARD"
 }
 
 # select a cloud image to download
@@ -90,17 +96,12 @@ create_dir(){
 
 # download a cloud image as .img
 download_cloud_image(){
-
   log "⬇️ Downloading cloud image..."
-  if [ -f "$CLOUD_IMAGE_NAME.img" ]; then
-    log "- ⛔️ image already present"
-  else
-    tmux kill-session -t "download" || true
-    tmux new-session -d -s "download"
-    tmux send-keys -t "download" "wget -c -O "$CLOUD_IMAGE_NAME".img \
-    "$CLOUD_IMAGE_URL"/"$CLOUD_IMAGE_NAME".img" ENTER
-    monitor_download
-  fi 
+    #tmux kill-session -t "download" || true
+    #tmux new-session -d -s "download"
+    #tmux send-keys -t "download" "
+    wget -c -O "$CLOUD_IMAGE_NAME".img "$CLOUD_IMAGE_URL"/"$CLOUD_IMAGE_NAME".img -q --show-progress 
+    #monitor_download
 }
 
 monitor_download(){
@@ -208,7 +209,7 @@ vnc_tunnel(){
   export_metatdata
   ssh -o "StrictHostKeyChecking no" \
     -N -L 5001:"$HOST_ADDRESS":5900 \
-    -i "/home/max/pxeless/virtual-machines/qemu/testvm/vmadmin" \
+    -i "/home/max/repos/Scrap-Metal/virtual-machines/$VM_NAME/$VM_USER" \
     -p "$VM_SSH_PORT" "$VM_USER"@"$HOST_ADDRESS"
 }
 
@@ -272,8 +273,8 @@ create_ubuntu_cloud_vm(){
       $PCI_GPU
       $NETDEV
       $DEVICE
-      -drive if=virtio,format=qcow2,file="$CLOUD_IMAGE_NAME"-new.img \
-      -drive if=virtio,format=raw,file=seed.img \
+      -drive if=virtio,format=qcow2,file="$CLOUD_IMAGE_NAME"-new.img,index=1,media=disk \
+      -drive if=virtio,format=raw,file=seed.img,index=0,media=disk  \
       -bios /usr/share/ovmf/OVMF.fd \
       -usbdevice tablet \
       -vnc $HOST_ADDRESS:$VNC_PORT \
@@ -365,6 +366,7 @@ create-windows-vm(){
   set_network
   select_image
   set_gpu
+  set_vnc
   create_dir
   create_virtual_disk
   create_windows_vm
@@ -376,6 +378,7 @@ boot-windows-vm(){
   set_network
   select_image
   set_gpu
+  set_vnc
   create_dir
   boot_windows_vm
   tmux_to_vm
@@ -386,6 +389,7 @@ create-cloud-vm(){
   set_network
   select_image
   set_gpu
+  set_vnc
   create_dir
   download_cloud_image
   expand_cloud_image
@@ -401,6 +405,7 @@ create-from-iso(){
   set_network
   select_image
   set_gpu
+  set_vnc
   create_dir
   create_user_data
   generate_seed_iso
@@ -413,6 +418,7 @@ boot-cloud-vm(){
   set_network
   select_image
   set_gpu
+  set_vnc
   create_dir
   boot_ubuntu_cloud_vm
   tmux_to_vm
@@ -423,6 +429,7 @@ boot-iso-vm(){
  set_network
  select_image
  set_gpu
+ set_vnc
  create_dir
  boot_vm_from_iso
  tmux_to_vm
