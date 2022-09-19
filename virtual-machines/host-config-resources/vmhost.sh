@@ -60,7 +60,7 @@ get_iommu_ids(){
 # create config files in local dir then move into place
 make_configs(){
 
-sudo mkdir "/etc/initram-fs"
+sudo mkdir -p "/etc/initram-fs"
 
 cat > $(pwd)/modules <<EOF    
 vfio
@@ -76,17 +76,6 @@ EOF
     
 sudo mv $(pwd)/modules /etc/initram-fs/modules
 sudo mv $(pwd)/local.conf /etc/modprobe.d/local.conf
-}
-
-# write the new grub line
-write_grub(){
-    if [ ! -f "/etc/default/grub.bak" ]; then
-        echo "No grub backups found, making one now..."
-        sudo cp /etc/default/grub /etc/default/grub.bak
-    fi
-    sleep 1
-    sudo sed "s/.*GRUB_CMDLINE_LINUX_DEFAULT=.*/${GRUB_CMDLINE_LINUX_DEFAULT}/" /etc/default/grub
-
 }
 
 # reset grub to a blank defaults line
@@ -106,7 +95,8 @@ export KVM_IGNORE_MSRS="1"
 export KVM_REPORT_IGNORED_MSRS="0"
 export RD_DRIVER_PRE="vfio-pci"
 export VIDEO_FLAG="efifb:off"
-export GRUB_CMDLINE_LINUX_DEFAULT="GRUB_CMDLINE_LINUX_DEFAULT=\"iommu="$IOMMU" \
+export CURRENT_GRUB_STRING=$(cat /etc/default/grub |grep GRUB_CMDLINE_LINUX_DEFAULT | sed -e 's/GRUB_CMDLINE_LINUX_DEFAULT=//g' | sed -e 's/"//g')
+export GRUB_CMDLINE_LINUX_DEFAULT="GRUB_CMDLINE_LINUX_DEFAULT=\"${CURRENT_GRUB_STRING} \
 vfio-pci.ids="$VFIO_PCI_IDS" \
 amd_iommu="$AMD_IOMMU" \
 i915.enable_gvt="$I915_ENABLE_GVT" \
@@ -118,6 +108,18 @@ kvm.report_ignored_msrs="$KVM_REPORT_IGNORED_MSRS" \
 preempt="$PREEMPT"\""
 }
 
+# write the new grub line
+write_grub(){
+    if [ ! -f "/etc/default/grub.bak" ]; then
+    ¦   echo "No grub backups found, making one now..."
+    ¦   sudo cp /etc/default/grub /etc/default/grub.bak
+    fi
+    sleep 1
+    sudo sed "s/GRUB_CMDLINE_LINUX_DEFAULT=.*/${GRUB_CMDLINE_LINUX_DEFAULT}/" /etc/default/grub > grub
+    sudo mv grub /etc/default/grub
+
+}
+
 # run the full script
 full_run(){
 
@@ -125,7 +127,6 @@ full_run(){
       echo "Missing required argument for get_iommu_ids <VENDOR NAME>, use a vendor name like 'NVIDIA', 'AMD', or 'Intel'."
       exit
     fi
-    
     deps
     generate_kernel_params $1
     write_grub
