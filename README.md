@@ -44,6 +44,8 @@ Both Cloud and Live-Install images are supported.
 
 ### Ubuntu Cloud Images
 
+Ubuntu cloud images use an overlay file system and have a serial console availble when gpu acceleration is disabled. These must be accessed via VNC when a GPU is enabled. When Ubuntu Desktop 22.04 is chosen as the GUI, RDP may be used instead.
+
 ```bash
 ./vm.sh create-cloud-vm
 ./vm.sh boot-cloud-vm
@@ -51,12 +53,16 @@ Both Cloud and Live-Install images are supported.
 
 ### Live-Installer Images
 
+Live installers boot into a bios screen and require VNC to configure.
+
 ```bash
 ./vm.sh create-from-iso <path-to-iso>
 ./vm.sh boot-iso-vm
 ```
 
 ### Windows Images
+
+Windows images require VNC and or RDP to access and configure
 
 ```bash
 ./vm.sh create-windows-vm
