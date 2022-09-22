@@ -17,12 +17,12 @@ deps(){
 # VM metadata
 export_metatdata(){
   export IMAGE_TYPE="img" #img or iso
-  export VM_NAME="test"
+  export VM_NAME="test2"
   export VM_USER="${VM_NAME}admin"
   export GITHUB_USER="cloudymax"
   export USER="max"
   export DISK_NAME="boot.img"
-  export DISK_SIZE="8G"
+  export DISK_SIZE="32G"
   export MEMORY="4G"
   export SOCKETS="1"
   export PHYSICAL_CORES="2"
@@ -40,25 +40,29 @@ set_network(){
   log "📞 Setting networking options."
   export STATIC_IP="true"
   export STATIC_IP_ADDRESS="192.168.50.101"
+  export DNS_SERVER="192.168.50.50"
+  export IP_GATEWAY="192.168.50.1"
   export HOST_ADDRESS="192.168.50.100"
   export HOST_SSH_PORT="22"
   export VM_SSH_PORT="1234"
   export VNC_PORT="0"
+  export TAP_DEVICE_NUMBER="0"
+  export NETWORK_NUMBER="0"
 
   if [[ "$STATIC_IP" == "true" ]]; then
     log " - Static IP selected."
-    export DEVICE="-device virtio-net-pci,netdev=network0,mac=$MAC_ADDR \\"
-    export NETDEV="-netdev tap,id=network0,ifname=tap0,script=no,downscript=no \\"
+    export DEVICE="-device virtio-net-pci,netdev=network$NETWORK_NUMBER,mac=$MAC_ADDR \\"
+    export NETDEV="-netdev tap,id=network$NETWORK_NUMBER,ifname=tap$TAP_DEVICE_NUMBER,script=no,downscript=no \\"
   else
     log " - Port Forwarding selected."
-    export DEVICE="-device virtio-net-pci,netdev=net0 \\"
-    export NETDEV="-netdev user,id=net0,hostfwd=tcp::"${VM_SSH_PORT}"-:"${HOST_SSH_PORT}" \\"
+    export DEVICE="-device virtio-net-pci,netdev=network$NETWORK_NUMBER \\"
+    export NETDEV="-netdev user,id=network$NETWORK_NUMBER,hostfwd=tcp::"${VM_SSH_PORT}"-:"${HOST_SSH_PORT}" \\"
   fi
 }
 
 # set gpu acceleration options
 set_gpu(){
-  log "🖥 Set graphics options based on gpu presence."
+  log "j🖥 Set graphics options based on gpu presence."
   if [[ "$GPU_ACCEL" == "false" ]]; then
     export VGA_OPT="-nographic \\"
     export PCI_GPU="\\"
@@ -79,7 +83,7 @@ set_vnc(){
 # select a cloud image to download
 select_image(){
   log "🌧 Selecting a cloud image to download"
-  #export ISO_FILE="/home/${USER}/repos/pxeless/ubuntu-autoinstall.iso"
+  #export ISO_FILE="/home/${USER}/repos/Scrap-Metal/debian-live-11.5.0-amd64-cinnamon.iso"
   export UBUNTU_CODENAME="jammy"
   export CLOUD_IMAGE_NAME="${UBUNTU_CODENAME}-server-cloudimg-amd64"
   export CLOUD_IMAGE_URL="https://cloud-images.ubuntu.com/jammy/current"
@@ -229,8 +233,9 @@ create_vm_from_iso(){
     -drive if=none,id=disk0,cache=none,format=qcow2,aio=threads,file=hdd.img \
     $NETDEV
     $DEVICE
+    $VGA_OPT
+    $PCI_GPU
     -bios /usr/share/ovmf/OVMF.fd \
-    -vga virtio \
     -usbdevice tablet \
     -vnc $HOST_ADDRESS:$VNC_PORT \
     $@" ENTER
@@ -248,10 +253,11 @@ boot_vm_from_iso(){
     -object iothread,id=io1 \
     -device virtio-blk-pci,drive=disk0,iothread=io1 \
     -drive if=none,id=disk0,cache=none,format=qcow2,aio=threads,file=hdd.img \
+    $PCI_GPU
+    $VGA_OPT
     $NETDEV
     $DEVICE
     -bios /usr/share/ovmf/OVMF.fd \
-    -vga virtio \
     -usbdevice tablet \
     -vnc $HOST_ADDRESS:$VNC_PORT \
     $@" ENTER
@@ -355,11 +361,14 @@ boot_windows_vm(){
 
 create_user_data(){
   log "👤 Generating user data"
-  bash ../user-data.sh --update --upgrade --slim\
+  bash ../user-data.sh --update --upgrade --slim \
     --password "${PASSWD}" \
-    --github-username "$GITHUB_USER" \
-    --username "$USER" \
-    --vm-name "$VM_NAME"
+    --github-username "${GITHUB_USER}" \
+    --username "${USER}" \
+    --vm-name "${VM_NAME}" \
+    --ip-address "${STATIC_IP_ADDRESS}" \
+    --gateway "${IP_GATEWAY}" \
+    --dns-server "${DNS_SERVER}"
 }
 
 create-windows-vm(){

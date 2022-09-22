@@ -31,6 +31,18 @@ parse_params() {
                         export VM_ADMIN="${VM_NAME}admin"
                         shift
                         ;;
+                -ip | --ip-address)
+                        export IP_ADDRESS="${2-}"
+                        shift
+                        ;;
+                -gw | --gateway)
+                        export GATEWAY="${2-}"
+                        shift
+                        ;;
+                -dns | --dns-server)
+                        export DNS="${2-}"
+                        shift
+                        ;;
                 -?*) die "Unknown option: $1" ;;
                 *) break ;;
                 esac
@@ -74,6 +86,12 @@ Available options:
 -p, --password          Password to set up for the VM Users.
 
 -u, --username          Username for non-system account
+
+-i, --ip-address        IP address for netplan to apply.
+
+-gw, --gateway          IP address for the default network gateway
+
+-dns, --dns-server      IP address for your DNS server
 
 -gh, --github-username  Github username from which to pull public keys
 
@@ -184,13 +202,13 @@ write_files:
         enp0s2:
           dhcp4: no
           dhcp6: no
-          addresses: [192.168.50.101/24]
+          addresses: [${IP_ADDRESS}/24]
           routes:
             - to: default
-              via: 192.168.50.1
+              via: ${GATEWAY}
           mtu: 1500
           nameservers:
-            addresses: [192.168.50.50]
+            addresses: [$DNS]
       renderer: networkd
       version: 2
 runcmd:
