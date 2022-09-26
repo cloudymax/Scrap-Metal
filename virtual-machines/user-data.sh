@@ -250,6 +250,24 @@ users:
     passwd: ${PASSWD}
     ssh_authorized_keys:
       - ${VM_KEY}
+write_files:
+- path: /etc/netplan/99-my-new-config.yaml
+  permissions: '0644'
+  content: |
+    network:
+      ethernets:
+        enp0s2:
+          dhcp4: no
+          dhcp6: no
+          addresses: [${IP_ADDRESS}/24]
+          routes:
+            - to: default
+              via: ${GATEWAY}
+          mtu: 1500
+          nameservers:
+            addresses: [$DNS]
+      renderer: networkd
+      version: 2
 apt:
   primary:
     - arches: [default]
