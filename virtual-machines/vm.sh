@@ -17,22 +17,23 @@ deps(){
 # VM metadata
 export_metatdata(){
   export IMAGE_TYPE="img" #img or iso
-  export VM_NAME="test2"
+  export VM_NAME="test"
   export VM_USER="${VM_NAME}admin"
   export GITHUB_USER="cloudymax"
   export USER="max"
   export DISK_NAME="boot.img"
   export DISK_SIZE="32G"
-  export MEMORY="4G"
+  export MEMORY="8G"
   export SOCKETS="1"
   export PHYSICAL_CORES="2"
   export THREADS="2"
+  export SMP=$(( $SOCKETS * $PHYSICAL_CORES * $THREADS ))
   export VM_KEY=""
   export VM_KEY_FILE="$VM_USER"
   export UUID="none"
   export MAC_ADDR=$(printf 'AC:AB:13:12:%02X:%02X\n' $((RANDOM%256)) $((RANDOM%256)))
   export PASSWD=$(mkpasswd -m sha-512 --rounds=4096 "password" -s "saltsaltlettuce")
-  export GPU_ACCEL="false"
+  export GPU_ACCEL="true"
 }
 
 # set network options
@@ -64,11 +65,11 @@ set_network(){
 set_gpu(){
   log "j🖥 Set graphics options based on gpu presence."
   if [[ "$GPU_ACCEL" == "false" ]]; then
-    export VGA_OPT="-nographic \\"
+    export VGA_OPT="-serial stdio -vga virtio \\"
     export PCI_GPU="\\"
     log " - GPU not attached"
   else
-    export VGA_OPT="-serial stdio -parallel none \\"
+    export VGA_OPT="-nographic -vga virtio -serial none -parallel none \\"
     export PCI_GPU="-device vfio-pci,host=02:00.0,multifunction=on,x-vga=on \\"
     log " - GPU attached"
   fi
@@ -189,13 +190,13 @@ ssh_to_vm(){
     # clear known_hosts and connect to the ip
     if [[ "$STATIC_IP" == "true" ]]; then
       if [ -f "/home/${USER}/.ssh/known_hosts" ]; then
-        ssh-keygen -f "/home/${USER}/.ssh/known_hosts" -R "[${HOST_ADDRESS}]"
+        ssh-keygen -f "/home/${USER}/.ssh/known_hosts" -R "${STATIC_IP_ADDRESS}"
       fi
 
       ssh -o "StrictHostKeyChecking no" \
         -X \
         -i "$VM_NAME"/"$VM_USER" \
-        "$VM_USER"@"$HOST_ADDRESS"
+        "$VM_USER"@"$STATIC_IP_ADDRESS"
 
     else
       # clear known_hosts and connect to the port on the host
@@ -225,7 +226,7 @@ create_vm_from_iso(){
   tmux send-keys -t "${VM_NAME}_session" "sudo qemu-system-x86_64 \
     -machine accel=kvm,type=q35 \
     -cpu host,kvm="off",hv_vendor_id="null" \
-    -smp sockets="$SOCKETS",cores="$PHYSICAL_CORES",threads="$THREADS" \
+    -smp $SMP,sockets="$SOCKETS",cores="$PHYSICAL_CORES",threads="$THREADS",maxcpus=$SMP \
     -m "$MEMORY" \
     -cdrom $ISO_FILE \
     -object iothread,id=io1 \
@@ -248,11 +249,11 @@ boot_vm_from_iso(){
   tmux send-keys -t "${VM_NAME}_session" "sudo qemu-system-x86_64 \
     -machine accel=kvm,type=q35 \
     -cpu host,kvm="off",hv_vendor_id="null" \
-    -smp sockets="$SOCKETS",cores="$PHYSICAL_CORES",threads="$THREADS" \
+    -smp $SMP,sockets="$SOCKETS",cores="$PHYSICAL_CORES",threads="$THREADS",maxcpus=$SMP \
     -m "$MEMORY" \
     -object iothread,id=io1 \
     -device virtio-blk-pci,drive=disk0,iothread=io1 \
-    -drive if=none,id=disk0,cache=none,format=qcow2,aio=threads,file=hdd.img \
+    -drive if=none,id=disk0,cache=none,format=raw,aio=threads,file=macos.img \
     $PCI_GPU
     $VGA_OPT
     $NETDEV
@@ -274,7 +275,7 @@ create_ubuntu_cloud_vm(){
     tmux send-keys -t "${VM_NAME}_session" "sudo qemu-system-x86_64  \
       -machine accel=kvm,type=q35 \
       -cpu host,kvm="off",hv_vendor_id="null" \
-      -smp sockets="$SOCKETS",cores="$PHYSICAL_CORES",threads="$THREADS" \
+      -smp $SMP,sockets="$SOCKETS",cores="$PHYSICAL_CORES",threads="$THREADS",maxcpus=$SMP \
       -m "$MEMORY" \
       $VGA_OPT
       $PCI_GPU
@@ -299,7 +300,7 @@ boot_ubuntu_cloud_vm(){
     tmux send-keys -t "${VM_NAME}_session" "sudo qemu-system-x86_64  \
       -machine accel=kvm,type=q35 \
       -cpu host,kvm="off",hv_vendor_id=null  \
-      -smp sockets="$SOCKETS",cores="$PHYSICAL_CORES",threads="$THREADS" \
+      -smp $SMP,sockets="$SOCKETS",cores="$PHYSICAL_CORES",threads="$THREADS",maxcpus=$SMP \
       -m "$MEMORY" \
       $VGA_OPT
       $PCI_GPU
@@ -321,7 +322,7 @@ create_windows_vm(){
   tmux send-keys -t "${VM_NAME}_session" "sudo qemu-system-x86_64 \
     -machine accel=kvm,type=q35 \
     -cpu host,kvm="off",hv_vendor_id="null" \
-    -smp sockets="$SOCKETS",cores="$PHYSICAL_CORES",threads="$THREADS" \
+    -smp $SMP,sockets="$SOCKETS",cores="$PHYSICAL_CORES",threads="$THREADS",maxcpus=$SMP \
     -m "$MEMORY" \
     -drive id=disk0,if=virtio,cache=none,format=qcow2,file=/home/max/pxeless/virtual-machines/${VM_NAME}/$DISK_NAME \
     -drive file=/home/max/pxeless/virtual-machines/images/Windows.iso,index=1,media=cdrom \
@@ -343,7 +344,7 @@ boot_windows_vm(){
   tmux send-keys -t "${VM_NAME}_session" "sudo qemu-system-x86_64 \
     -machine accel=kvm,type=q35 \
     -cpu host,kvm="off",hv_vendor_id="null" \
-    -smp sockets="$SOCKETS",cores="$PHYSICAL_CORES",threads="$THREADS" \
+    -smp $SMP,sockets="$SOCKETS",cores="$PHYSICAL_CORES",threads="$THREADS",maxcpus=$SMP \
     -m "$MEMORY" \
     -hda /home/max/pxeless/virtual-machines/${VM_NAME}/$DISK_NAME \
     -drive file=/home/max/pxeless/virtual-machines/images/Windows.iso,index=1,media=cdrom \
