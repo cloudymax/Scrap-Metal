@@ -3,6 +3,22 @@
 # Simple template modification script to customize cloud-init user-data 
 # cloud-init logs are in /run/cloud-init/result.json
 # <3 max
+#
+# If we want to debug the user-data in cloud-init, we can try the following steps:
+# https://cloudinit.readthedocs.io/en/latest/topics/debugging.html
+#
+#    # Reset and re-run
+#    sudo rm -rf /var/lib/cloud/*
+#    sudo cloud-init init
+#    sudo cloud-init modules -m final
+#    
+#    # Analyze logs
+#    sudo cloud-init analyze show -i /var/log/cloud-init.log
+#    sudo cloud-init analyze dump -i /var/log/cloud-init.log
+#    sudo cloud-init analyze blame -i /var/log/cloud-init.log
+#    
+#    # Run single module
+#    sudo cloud-init single --name cc_ssh --frequency always
 #########################################################################
 set -o pipefail
 
