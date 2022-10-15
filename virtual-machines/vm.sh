@@ -17,7 +17,7 @@ deps(){
 # VM metadata
 export_metatdata(){
   export IMAGE_TYPE="img" #img or iso
-  export VM_NAME="test"
+  export VM_NAME="vm"
   export VM_USER="${VM_NAME}admin"
   export GITHUB_USER="cloudymax"
   export USER="max"
@@ -33,7 +33,7 @@ export_metatdata(){
   export UUID="none"
   export MAC_ADDR=$(printf 'AC:AB:13:12:%02X:%02X\n' $((RANDOM%256)) $((RANDOM%256)))
   export PASSWD=$(mkpasswd -m sha-512 --rounds=4096 "password" -s "saltsaltlettuce")
-  export GPU_ACCEL="true"
+  export GPU_ACCEL="false"
 }
 
 # set network options
@@ -65,11 +65,11 @@ set_network(){
 set_gpu(){
   log "j🖥 Set graphics options based on gpu presence."
   if [[ "$GPU_ACCEL" == "false" ]]; then
-    export VGA_OPT="-serial stdio -vga virtio \\"
+    export VGA_OPT="-serial stdio -vga virtio -parallel none \\"
     export PCI_GPU="\\"
     log " - GPU not attached"
   else
-    export VGA_OPT="-nographic -vga virtio -serial none -parallel none \\"
+    export VGA_OPT="-vga virtio -serial stdio -parallel none \\"
     export PCI_GPU="-device vfio-pci,host=02:00.0,multifunction=on,x-vga=on \\"
     log " - GPU attached"
   fi
