@@ -1,22 +1,49 @@
 # Scrap-Metal (WIP)
 
-Scrap-Metal is a hackable virtualization playground for QEMU and Multipass written in bash with minimal dependencies.
+ScrapMetal is the Bash/Python boilerplate you need to create performant
+QEMU/KVM Virtual Machines using your own hardware. 
+
+Features:
+- Seamless provisioning via cloud-init 
+- VM creation from LiveUSB/ISO images
+- Static IP address assignment via Tap/Tun networking
+- PCI-e/iommu pass-through
+- GPU acceleration
+- VNC and RDP support
 
 ## Supported Hosts
 
-Scrap metal is built to run on X86 AMD64 Ubuntu Server host machines that have been pre-provisioned with a tools like [Pxeless](https://github.com/cloudymax/pxeless), Cloud-Init, Ansible etc... There are system-specific kernel modules that must be in-place for features like IOMMU/VirtIO passthrough to work properly. While non-accelerated Linux/Windows guests will work without these steps, they are a hard requirement for MacOS and GPU-enabled guests.
+Scrap metal is built to run on X86 AMD64 Ubuntu Server host machines that have
+been pre-provisioned with a tools like [Pxeless](https://github.com/cloudymax/pxeless), 
+Cloud-Init, Ansible etc... 
 
-Support for other Debian-Based distros is a W.I.P 
+## Disclaimers and Warnings
 
-GPU passthrough is supported for Intel CPU's and Nvidia GPU's ONLY.
+* There are system-specific kernel modules that must be in-place for features 
+like IOMMU/VirtIO passthrough to work properly. While non-accelerated 
+Linux/Windows guests will work without these steps, they are a hard requirement 
+for MacOS and GPU-enabled guests.
+
+* Support for other Debian-Based distros on the host is a W.I.P 
+and blocked by pre-seed support.
+
+* GPU passthrough is supported for Intel CPU's and Nvidia GPU's ONLY.
 This is because I don't have any AMD hardware, not because it isnt possible. 
 
-The process for preparing the Host for GPU passthrough is best-effort, there are garunteed to be issues across hardware models and vendors. To minimize the chances of misconfiguration follow the full-process of re-imaging your host with the supported ISO.
+* The process for preparing the Host for GPU-passthrough is best-effort only. 
+There are garunteed to be issues across hardware models and vendors. 
+To minimize the chances of misconfiguration follow the full-process of 
+re-imaging your host with the supported ISO.
 
 ## Supported Guests
 
-Scrap-Metal supports Linux and Windows guests. MacOS guests are WIP.
-Both Cloud and Live-Install images are supported.
+- Ubuntu Linux guests created from cloud images
+
+- Other Linux distros supported via ISO/LiveUSB install.
+
+- Windows guests installed from ISO
+
+- MacOS guest support is enabled via [MacOS-KVM](https://github.com/kholia/OSX-KVM).
 
 ### Ubuntu Cloud Images
 
@@ -104,4 +131,213 @@ Specifically, you will need to alter the vm creation script to remove the VGA de
 through
  
 
-## Guests
+
+```bash
+./install.sh --disable=servicelb \
+    --disable=traefik \
+    --write-kubeconfig-mode=647
+
+kubectl apply -f https://raw.githubusercontent.com/metallb/metallb/v0.13.6/config/manifests/metallb-native.yaml
+
+helm upgrade --install ingress-nginx ingress-nginx  \
+    --repo https://kubernetes.github.io/ingress-nginx  \
+    --namespace ingress-nginx \
+    --create-namespace
+```
+
+pools.yaml:
+
+```yaml
+---
+apiVersion: metallb.io/v1beta1
+kind: IPAddressPool
+metadata:
+  name: default
+  namespace: metallb-system
+spec:
+  addresses:
+  - 192.168.50.102-192.168.50.110
+  autoAssign: true
+---
+apiVersion: metallb.io/v1beta1
+kind: L2Advertisement
+metadata:
+  name: default
+  namespace: metallb-system
+spec:
+  ipAddressPools:
+  - default
+```
+
+```bash
+kubectl apply -f pools.yaml
+
+export KUBECONFIG=/etc/rancher/k3s/k3s.yaml
+
+kubectl create deployment demo --image=nginxdemos/hello --port=80
+kubectl expose deployment demo
+kubectl create ingress demo-localhost \
+    --class=nginx \
+    --rule="ingress.raccoon.cloud/*=demo:80"i
+
+helm repo add jetstack https://charts.jetstack.io
+helm repo update
+helm install cert-manager jetstack/cert-manager \
+    --namespace cert-manager \
+    --create-namespace  \
+    --version v1.9.1 \
+    --set installCRDs=true
+```
+
+certs.yaml
+```yaml
+---
+apiVersion: cert-manager.io/v1
+kind: ClusterIssuer
+metadata:
+  name: letsencrypt-staging
+spec:
+  acme:
+    server: https://acme-staging-v02.api.letsencrypt.org/directory
+    email: garbage@raccoon.cloud
+    privateKeySecretRef:
+      name: letsencrypt-staging
+    solvers:
+      - http01:
+          ingress:
+            class: nginx
+```
+
+```bash
+kubectl apply -f certs.yaml
+```
+
+hello-nginx.yaml:
+
+```yaml
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: nginx-hello
+  namespace: default
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: ingress.raccoon.cloud
+      http:
+        paths:
+          - pathType: Prefix
+            backend:
+              service:
+                name: nginx-hello
+                port:
+                  number: 80
+            path: /
+  tls:
+    - hosts:
+      - ingress.raccoon.cloud
+      secretName: example-tls
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nginx-hello
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: nginx-hello
+  template:
+    metadata:
+      labels:
+        app: nginx-hello
+    spec:
+      containers:
+        - name: nginx-hello
+          image: nginxdemos/hello
+          ports:
+            - containerPort: 80
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: nginx-hello
+spec:
+  selector:
+    app: nginx-hello
+  ports:
+    - protocol: TCP
+      port: 80
+```
+
+```bash
+kubectl apply -f hello-nginx.yaml
+```
+
+argo.yaml
+
+```yaml
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: argocd
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: argocd-server-ingress
+  namespace: argocd
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-staging
+    kubernetes.io/ingress.class: nginx
+    kubernetes.io/tls-acme: "true"
+    nginx.ingress.kubernetes.io/ssl-passthrough: "true"
+    # If you encounter a redirect loop or are getting a 307 response code
+    # then you need to force the nginx ingress to connect to the backend using HTTPS.
+    #
+    nginx.ingress.kubernetes.io/backend-protocol: "HTTPS"
+spec:
+  rules:
+  - host: argocd.raccoon.cloud
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: argocd-server
+            port:
+              name: https
+  tls:
+  - hosts:
+    - argocd.raccoon.cloud
+    secretName: argocd-secret # do not change, this is provided by Argo CD
+```
+values.yaml:
+
+```yaml
+configs: 
+  secret: 
+    argocdServerAdminPassword: ""
+  server: 
+    ingress: 
+      annotations: 
+        nginx.ingress.kubernetes.io/backend-protocal: HTTPS
+        nginx.ingress.kubernetes.io/force-ssl-redirect: true
+        nginx.ingress.kubernetes.io/ssl-passthrough: true
+      enabled: true
+      hosts: 
+        - argo_cd_domain
+      ingressClassName: nginx
+    insecure: true
+dex: 
+  enabled: false
+```
+
+```bash
+helm repo add argo https://argoproj.github.io/argo-helm
+helm install argocd argo/argo-cd --namespace argocd --values values.yaml
+kubectl apply -f argo.yaml
+```
