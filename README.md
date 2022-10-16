@@ -27,7 +27,7 @@ QEMU is special amongst its counterparts for a couple important reasons:
   - It's multi-platform
   - It's fast - not as fast as [LXD](https://linuxcontainers.org/lxd/introduction/), [FireCracker](https://firecracker-microvm.github.io/), or [Cloud-Hypervisor](https://github.com/cloud-hypervisor/cloud-hypervisor) (formerly [NEMU](https://github.com/intel/nemu)), but its far more mature and thoroughly documented. 
   - Unlike a [system container](https://linuxcontainers.org/lxd/introduction/) or [Multipass](https://multipass.run/docs) it can create windows hosts 
-  - [Unlike Firecracker](https://github.com/firecracker-microvm/firecracker/issues/849#issuecomment-464731628) it supports pinning memmory addresses, and wont because it would break their core feature of over-subscription.
+  - [Unlike Firecracker](https://github.com/firecracker-microvm/firecracker/issues/849#issuecomment-464731628) it supports pinning memmory addresses where firecracker cannot because it would break their core feature of over-subscription.
 
 These qualities make QEMU well-suited for those seeking a hypervisor running the first layer of virtualization. In your second layer though, you should consider the lighter and faster LXD, Firecracker, or Cloud-Hypervisor.
 
