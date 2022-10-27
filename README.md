@@ -153,6 +153,14 @@ The TUI and CLI are being created to wrap the multitude of small helper scripts 
 
 `vmhost.sh`: get the PCI IDs of the GPU and alter grub and other config files to enable pass-
 through
+
+## Tunnels
+
+rdp tunnel over ssh:
+```bash
+ ssh -L 3389:10.0.2.15:3389 176.9.44.19 -p23 -l max -N
+ ssh -L 3389:<vm-private-ip>:3389 <host-ip> -p<vm-ssh-port> -l max -N
+```
  
 ## Roadmap
 
