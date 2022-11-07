@@ -5,9 +5,12 @@ log() {
 }
 
 deps(){
+    
+    # Install required Apt Packages
     sudo apt-get install -y qemu-kvm \
         bridge-utils \
-        virtinst ovmf \
+        virtinst\
+        ovmf \
         qemu-utils \
         cloud-image-utils \
         ubuntu-drivers-common \
@@ -15,16 +18,21 @@ deps(){
         git \
         git-extras
 
+        # Cleanup apt
         sudo apt-get autoremove -y
         
+        # Get the latest cigen
         git-force-clone \
         https://github.com/cloudymax/cloud-init-generator \
         cloud-init-generator
        
+        # Get the latest community templates
         git-force-clone \
         https://github.com/cloudymax/cigen-community-templates \
         cigen-community-templates
 
+        # Build the Cigen docker image
+        # Todo: publish this image so we dont have to build it
         docker build -f cloud-init-generator/Dockerfile -t cigen .
     }
 
