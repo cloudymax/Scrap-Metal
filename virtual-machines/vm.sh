@@ -11,11 +11,26 @@ deps(){
         qemu-utils \
         cloud-image-utils \
         ubuntu-drivers-common \
-        whois
-}
+        whois \
+        git \
+        git-extras
+
+        sudo apt-get autoremove -y
+        
+        git-force-clone \
+        https://github.com/cloudymax/cloud-init-generator \
+        cloud-init-generator
+       
+        git-force-clone \
+        https://github.com/cloudymax/cigen-community-templates \
+        cigen-community-templates
+
+        docker build -f cloud-init-generator/Dockerfile -t cigen .
+    }
 
 # VM metadata
 export_metatdata(){
+  export CLOUD_INIT_TEMPLATE="/home/$USER/repos/Scrap-Metal/virtual-machines/cigen-community-templates/slim.yaml"
   export IMAGE_TYPE="img" #img or iso
   export VM_NAME="vm"
   export VM_USER="${VM_NAME}admin"
@@ -33,7 +48,7 @@ export_metatdata(){
   export UUID="none"
   export MAC_ADDR=$(printf 'AC:AB:13:12:%02X:%02X\n' $((RANDOM%256)) $((RANDOM%256)))
   export PASSWD=$(mkpasswd -m sha-512 --rounds=4096 "password" -s "saltsaltlettuce")
-  export GPU_ACCEL="false"
+  export GPU_ACCEL="true"
 }
 
 # set network options
@@ -84,11 +99,26 @@ set_vnc(){
 # select a cloud image to download
 select_image(){
   log "🌧 Selecting a cloud image to download"
-  #export ISO_FILE="/home/${USER}/repos/Scrap-Metal/debian-live-11.5.0-amd64-cinnamon.iso"
+  export ISO_FILE="/home/${USER}/repos/pxeless/ubuntu-autoinstall.iso"
   export UBUNTU_CODENAME="jammy"
   export CLOUD_IMAGE_NAME="${UBUNTU_CODENAME}-server-cloudimg-amd64"
   export CLOUD_IMAGE_URL="https://cloud-images.ubuntu.com/jammy/current"
   log " - Done!"
+}
+
+# create an ssh keyi
+create_ssh_key(){
+  log "🔐 Create an SSH key for the VM admin user"
+
+  yes |ssh-keygen -C "$VM_USER" \
+    -f "${VM_USER}" \
+    -N '' \
+    -t rsa 1> /dev/null
+
+  export VM_KEY_FILE=$(find "$(cd ..; pwd)" -name "${VM_USER}")
+  export VM_KEY=$(cat "${VM_KEY_FILE}".pub)
+  log " - Done."
+
 }
 
 # create a directory to hold the VM assets
@@ -159,7 +189,7 @@ create_virtual_disk(){
 # Generate an ISO image
 generate_seed_iso(){
   log "🌱 Generating seed iso containing user-data"
-  cloud-localds seed.img user-data
+  cloud-localds seed.img user-data.yaml
   log " - Done!"
 }
 
@@ -253,7 +283,7 @@ boot_vm_from_iso(){
     -m "$MEMORY" \
     -object iothread,id=io1 \
     -device virtio-blk-pci,drive=disk0,iothread=io1 \
-    -drive if=none,id=disk0,cache=none,format=raw,aio=threads,file=macos.img \
+    -drive if=none,id=disk0,cache=none,format=qcow2,aio=threads,file=hdd.img \
     $PCI_GPU
     $VGA_OPT
     $NETDEV
@@ -362,14 +392,17 @@ boot_windows_vm(){
 
 create_user_data(){
   log "👤 Generating user data"
-  bash ../user-data.sh --update --upgrade --slim \
+  cd ..
+  docker run -it -v "${CLOUD_INIT_TEMPLATE}":/cloud-init-template.yaml \
+    -v $(pwd)/$VM_NAME:/output \
+    cigen ./cigen.sh --update --upgrade \
     --password "${PASSWD}" \
     --github-username "${GITHUB_USER}" \
     --username "${USER}" \
     --vm-name "${VM_NAME}" \
-    --ip-address "${STATIC_IP_ADDRESS}" \
-    --gateway "${IP_GATEWAY}" \
-    --dns-server "${DNS_SERVER}"
+    --template "/cloud-init-template.yaml"
+  cd $VM_NAME
+  
 }
 
 create-windows-vm(){
@@ -402,6 +435,7 @@ create-cloud-vm(){
   set_gpu
   set_vnc
   create_dir
+  create_ssh_key
   download_cloud_image
   expand_cloud_image
   create_user_data
