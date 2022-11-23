@@ -5,7 +5,7 @@ log() {
 }
 
 deps(){
-    
+
     # Install required Apt Packages
     sudo apt-get install -y qemu-kvm \
         bridge-utils \
@@ -16,16 +16,17 @@ deps(){
         ubuntu-drivers-common \
         whois \
         git \
-        git-extras
+        git-extras \
+        guestfs-tools
 
         # Cleanup apt
         sudo apt-get autoremove -y
-        
+
         # Get the latest cigen
         git-force-clone \
         https://github.com/cloudymax/cloud-init-generator \
         cloud-init-generator
-       
+
         # Get the latest community templates
         git-force-clone \
         https://github.com/cloudymax/cigen-community-templates \
@@ -34,13 +35,18 @@ deps(){
         # Build the Cigen docker image
         # Todo: publish this image so we dont have to build it
         docker build -f cloud-init-generator/Dockerfile -t cigen .
-    }
+}
 
 # VM metadata
 export_metatdata(){
-  export CLOUD_INIT_TEMPLATE="/home/$USER/repos/Scrap-Metal/virtual-machines/cigen-community-templates/slim.yaml"
-  export IMAGE_TYPE="img" #img or iso
-  export VM_NAME="vm"
+  # Base Image Options
+  export CLOUD_IMAGE_URL="https://cloud.debian.org/images/cloud/bookworm/daily/latest/debian-12-generic-amd64-daily.qcow2"
+  export CLOUD_IMAGE_NAME=$(basename "$CLOUD_IMAGE_URL")
+  export CLOUD_INIT_TEMPLATE="/home/$USER/repos/Scrap-Metal/virtual-machines/cigen-community-templates/debian-gnome.yaml"
+  export ISO_FILE="/home/${USER}/repos/pxeless/ubuntu-autoinstall.iso"
+
+  # VM Options
+  export VM_NAME="test"
   export VM_USER="${VM_NAME}admin"
   export GITHUB_USER="cloudymax"
   export USER="max"
@@ -55,13 +61,12 @@ export_metatdata(){
   export VM_KEY_FILE="$VM_USER"
   export UUID="none"
   export MAC_ADDR=$(printf 'AC:AB:13:12:%02X:%02X\n' $((RANDOM%256)) $((RANDOM%256)))
-  export PASSWD=$(mkpasswd -m sha-512 --rounds=4096 "password" -s "saltsaltlettuce")
-  export GPU_ACCEL="true"
-}
+  export PASSWD="password"
 
-# set network options
-set_network(){
-  log "📞 Setting networking options."
+  # GPU Options
+  export GPU_ACCEL="true"
+
+  # Networking Options
   export STATIC_IP="true"
   export STATIC_IP_ADDRESS="192.168.50.101"
   export DNS_SERVER="192.168.50.50"
@@ -72,6 +77,36 @@ set_network(){
   export VNC_PORT="0"
   export TAP_DEVICE_NUMBER="0"
   export NETWORK_NUMBER="0"
+  export BRIDGE_NAME="br0"
+
+}
+
+# set network options
+set_network(){
+  log "📞 Setting networking options."
+
+  BRIDGE=$(brctl show |grep -w -c "$BRIDGE_NAME")
+  if [ "$BRIDGE" -gt "0" ]; then
+      echo "bridge exists"
+  else
+      echo "no bridge exists. Creating..."
+      #sudo ip link add "$BRIDGE_NAME" type bridge
+      #sudo ip link set "$BRIDGE_NAME" up
+      #sudo ip link set enp4s0 up
+      #sudo ip link set enp4s0 master "$BRIDGE_NAME"
+      #sudo ip addr flush dev enp4s0
+      #sudo ip addr add "$HOST_ADDRESS/24" brd + dev "$BRIDGE_NAME"
+      #sudo ip route add default via "$IP_GATEWAY" dev "$BRIDGE_NAME"
+  fi
+
+  #sudo ip tuntap add dev tap0 mode tap user root
+  #sudo ip link set dev tap0 up
+  #sudo ip link set tap0 master br0
+  #iptables -F FORWARD
+  #iptables -I FORWARD -m physdev --physdev-is-bridged -j ACCEPT
+  #brctl show
+  #sysctl -w net.ipv4.ip_forward=1
+
 
   if [[ "$STATIC_IP" == "true" ]]; then
     log " - Static IP selected."
@@ -104,15 +139,38 @@ set_vnc(){
   export VNC_OPTIONS="-vnc $HOST_ADDRESS:$VNC_PORT -k $KEYBOARD"
 }
 
-# select a cloud image to download
-select_image(){
-  log "🌧 Selecting a cloud image to download"
-  export ISO_FILE="/home/${USER}/repos/pxeless/ubuntu-autoinstall.iso"
-  export UBUNTU_CODENAME="jammy"
-  export CLOUD_IMAGE_NAME="${UBUNTU_CODENAME}-server-cloudimg-amd64"
-  export CLOUD_IMAGE_URL="https://cloud-images.ubuntu.com/jammy/current"
+download_cloud_image(){
+  log "⬇️ Downloading cloud image..."
+    wget -c -O "$CLOUD_IMAGE_NAME" "$CLOUD_IMAGE_URL" -q --show-progress
+}
+
+# Create and expanded image
+expand_cloud_image(){
+  log "📈 Expanding image"
+
+  export CLOUD_IMAGE_FILE_TYPE=$(echo "${CLOUD_IMAGE_NAME#*.}")
+
+  case $CLOUD_IMAGE_FILE_TYPE in
+    "img")
+      echo "img"
+      qemu-img create -b ${CLOUD_IMAGE_NAME} -f qcow2 \
+          -F qcow2 disk.qcow2 \
+          "$DISK_SIZE" 1> /dev/null
+      ;;
+    "qcow2")
+      echo "qcow2"
+      cp ${CLOUD_IMAGE_NAME} disk.qcow2
+      qemu-img resize disk.qcow2 "$DISK_SIZE"
+      sudo virt-resize --expand /dev/sda1 ${CLOUD_IMAGE_NAME} disk.qcow2
+      ;;
+    *)
+      echo "error"
+      exit
+  esac
+
   log " - Done!"
 }
+
 
 # create an ssh keyi
 create_ssh_key(){
@@ -135,55 +193,6 @@ create_dir(){
   mkdir -p "$VM_NAME"
   cd "$VM_NAME"
   export UUID=$(uuidgen)
-  log " - Done!"
-}
-
-# download a cloud image as .img
-download_cloud_image(){
-  log "⬇️ Downloading cloud image..."
-    #tmux kill-session -t "download" || true
-    #tmux new-session -d -s "download"
-    #tmux send-keys -t "download" "
-    wget -c -O "$CLOUD_IMAGE_NAME".img "$CLOUD_IMAGE_URL"/"$CLOUD_IMAGE_NAME".img -q --show-progress 
-    #monitor_download
-}
-
-monitor_download(){
-  DONE=$(tmux capture-pane -t "download" -p |tac |grep -ai -c "saved" )
-  while [[ "$DONE" != "1" ]]; do
-      printf '\r%s' "  " "$(tmux capture-pane -t "download" -p |tac | grep -v "^$" | head -1)"
-      sleep .1 
-      DONE=$(tmux capture-pane -t "download" -p |tac |grep -ai -c "saved" )
-  done
-  printf "\n"
-  log " - Done!"
-}
-
-# Create and expanded image
-expand_cloud_image(){
-  log "📈 Expanding image"
-  qemu-img create -b ${CLOUD_IMAGE_NAME}.img -f qcow2 \
-  	-F qcow2 ${CLOUD_IMAGE_NAME}-new.img \
-  	"$DISK_SIZE" 1> /dev/null
-  log " - Done!"
-}
-
-# convert the .img to qcow2 to use as base layer
-img_to_qcow(){
-  log "🐄 Converting img to qcow2"
-  qemu-img convert -f raw \
-    -O qcow2 "$CLOUD_IMAGE_NAME"_original.img \
-    "$CLOUD_IMAGE_NAME".qcow2
-  log " - Done!"
-}
-
-# create the next layer on the image
-create_qcow_image(){
-  log "🐄 Creating qcow2 image"
-  qemu-img create -f qcow2 \
-    -F qcow2 \
-    -o backing_file="$CLOUD_IMAGE_NAME"_base.qcow2 \
-    "$VM_NAME".qcow2
   log " - Done!"
 }
 
@@ -241,11 +250,11 @@ ssh_to_vm(){
       if [ -f "/home/${USER}/.ssh/known_hosts" ]; then
         ssh-keygen -f "/home/${USER}/.ssh/known_hosts" -R "[${HOST_ADDRESS}]:${VM_SSH_PORT}"
       fi
-      
+
       ssh -o "StrictHostKeyChecking no" \
         -X \
         -i "$VM_NAME"/"$VM_USER" \
-        -p"${VM_SSH_PORT}" "${VM_USER}"@"${HOST_ADDRESS}" 
+        -p"${VM_SSH_PORT}" "${VM_USER}"@"${HOST_ADDRESS}"
     fi
 }
 
@@ -292,6 +301,8 @@ boot_vm_from_iso(){
     -object iothread,id=io1 \
     -device virtio-blk-pci,drive=disk0,iothread=io1 \
     -drive if=none,id=disk0,cache=none,format=qcow2,aio=threads,file=hdd.img \
+    -device intel-hda \
+    -device hda-duplex \
     $PCI_GPU
     $VGA_OPT
     $NETDEV
@@ -319,7 +330,7 @@ create_ubuntu_cloud_vm(){
       $PCI_GPU
       $NETDEV
       $DEVICE
-      -drive if=virtio,format=qcow2,file="$CLOUD_IMAGE_NAME"-new.img,index=1,media=disk \
+      -drive if=virtio,format=qcow2,file=disk.qcow2,index=1,media=disk \
       -drive if=virtio,format=raw,file=seed.img,index=0,media=disk  \
       -bios /usr/share/ovmf/OVMF.fd \
       -usbdevice tablet \
@@ -344,7 +355,7 @@ boot_ubuntu_cloud_vm(){
       $PCI_GPU
       $NETDEV
       $DEVICE
-      -drive if=virtio,format=qcow2,file="$CLOUD_IMAGE_NAME"-new.img \
+      -drive if=virtio,format=qcow2,file=disk.qcow2 \
       -bios /usr/share/ovmf/OVMF.fd \
       -usbdevice tablet \
       -vnc $HOST_ADDRESS:$VNC_PORT \
@@ -408,9 +419,10 @@ create_user_data(){
     --github-username "${GITHUB_USER}" \
     --username "${USER}" \
     --vm-name "${VM_NAME}" \
-    --template "/cloud-init-template.yaml"
+    --template "/cloud-init-template.yaml" \
+    --extra-vars "VM_KEY=$VM_KEY,IP_ADDRESS=$STATIC_IP_ADDRESS,GATEWAY_IP=$IP_GATEWAY,DNS_SERVER_IP=$DNS_SERVER"
   cd $VM_NAME
-  
+
 }
 
 create-windows-vm(){
@@ -439,7 +451,6 @@ boot-windows-vm(){
 create-cloud-vm(){
   export_metatdata
   set_network
-  select_image
   set_gpu
   set_vnc
   create_dir
@@ -448,7 +459,7 @@ create-cloud-vm(){
   expand_cloud_image
   create_user_data
   generate_seed_iso
-  create_virtual_disk
+  #create_virtual_disk
   create_ubuntu_cloud_vm
 }
 
@@ -456,7 +467,6 @@ create-from-iso(){
   ISO_FILE=$1
   export_metatdata
   set_network
-  select_image
   set_gpu
   set_vnc
   create_dir
@@ -469,7 +479,6 @@ create-from-iso(){
 boot-cloud-vm(){
   export_metatdata
   set_network
-  select_image
   set_gpu
   set_vnc
   create_dir
@@ -478,15 +487,13 @@ boot-cloud-vm(){
 }
 
 boot-iso-vm(){
- export_metatdata
- set_network
- select_image
- set_gpu
- set_vnc
- create_dir
- boot_vm_from_iso
- tmux_to_vm
+  export_metatdata
+  set_network
+  set_gpu
+  set_vnc
+  create_dir
+  boot_vm_from_iso
+  tmux_to_vm
 }
 
 "$@"
-

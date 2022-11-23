@@ -1,0 +1,6 @@
+2022/11/16 19:14:50 [1227414] sent 0 bytes  received 0 bytes  total size 0
+2022/11/16 19:14:50 [1227414] rsync error: received SIGINT, SIGTERM, or SIGHUP (code 20) at rsync.c(703) [sender=3.2.3]
+2022/11/16 19:16:22 [1227598] sent 0 bytes  received 0 bytes  total size 0
+2022/11/16 19:16:22 [1227598] rsync error: received SIGINT, SIGTERM, or SIGHUP (code 20) at rsync.c(703) [sender=3.2.3]
+2022/11/16 19:17:48 [1227899] sent 0 bytes  received 0 bytes  total size 0
+2022/11/16 19:17:48 [1227899] rsync error: received SIGINT, SIGTERM, or SIGHUP (code 20) at rsync.c(703) [sender=3.2.3]

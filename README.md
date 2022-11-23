@@ -29,7 +29,7 @@ QEMU is special amongst its counterparts for a couple important reasons:
   - Unlike a [system container](https://linuxcontainers.org/lxd/introduction/) or [Multipass](https://multipass.run/docs) it can create windows hosts 
   - [Unlike Firecracker](https://github.com/firecracker-microvm/firecracker/issues/849#issuecomment-464731628) it supports pinning memmory addresses where firecracker cannot because it would break their core feature of over-subscription.
 
-These qualities make QEMU well-suited for those seeking a general-purpose hypervisor running the first layer of virtualization. In your second layer though, you should consider the lighter and faster LXD, Firecracker, or Cloud-Hypervisor.
+These qualities make QEMU well-suited for those seeking a general-purpose hypervisor running the first layer of virtualization. For maximum speed or density though, you should consider if the lighter, but less generalized LXD, Firecracker, or Cloud-Hypervisor better suits your needs.
 
 ## Host OS Support
 
@@ -174,7 +174,7 @@ rdp tunnel over ssh:
 
 ## Resources and Help
 
-Scrap-Metal is not a new development or an original work. It's bits and pieces of knowledge from people much smart than myself that have been cut-and-pasted into a sligjtly easier-to-use format.
+Scrap-Metal is not a new development or an original work. It's bits and pieces of knowledge from people much smarter than myself that have been cut-and-pasted into a sligjtly easier-to-use format.
 
 GPU Passthrough resources:
 
