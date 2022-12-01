@@ -19,7 +19,7 @@ get_iommu_data(){
     shopt -s nullglob
     for d in /sys/kernel/iommu_groups/{0..64}/devices/*; do
         n=${d#*/iommu_groups/*}; n=${n%%/*}
-        printf 'IOMMU Group %s ' "$n" 
+        printf 'IOMMU Group %s ' "$n"
         lspci -nns "${d##*/}"
     done;
 }
@@ -35,7 +35,7 @@ get_iommu_ids(){
     for ((i=1;i<=$COUNT;i++)); do
 
         ID=$(echo "$LIST" |grep $1 |awk '{print $(NF-2)}' |head -$i |tail -1 |sed 's/[][]//g')
-        
+
         # Regex Explanation:
         # 1. search the data for lines onctaining VENDOR_NAME
         #    echo "$LIST" |grep $1
@@ -62,18 +62,18 @@ make_configs(){
 
 sudo mkdir -p "/etc/initram-fs"
 
-cat > $(pwd)/modules <<EOF    
+cat > $(pwd)/modules <<EOF
 vfio
 vfio_iommu_type1
 vfio_pci
 vfio_virqfd
 EOF
 
-cat > $(pwd)/local.conf <<EOF    
+cat > $(pwd)/local.conf <<EOF
 options vfio-pci ids=$VFIO_PCI_IDS
 options vfio-pci disable_vga=1
 EOF
-    
+
 sudo mv $(pwd)/modules /etc/initram-fs/modules
 sudo mv $(pwd)/local.conf /etc/modprobe.d/local.conf
 }
@@ -111,8 +111,8 @@ preempt="$PREEMPT"\""
 # write the new grub line
 write_grub(){
     if [ ! -f "/etc/default/grub.bak" ]; then
-    ¦   echo "No grub backups found, making one now..."
-    ¦   sudo cp /etc/default/grub /etc/default/grub.bak
+       echo "No grub backups found, making one now..."
+       sudo cp /etc/default/grub /etc/default/grub.bak
     fi
     sleep 1
     sudo sed "s/GRUB_CMDLINE_LINUX_DEFAULT=.*/${GRUB_CMDLINE_LINUX_DEFAULT}/" /etc/default/grub > grub
@@ -149,11 +149,11 @@ reset(){
     echo "Restoring backup of /etc/default/grub..."
     sudo cp /etc/default/grub.bak /etc/default/grub
     cat /etc/default/grub |grep GRUB_CMDLINE_LINUX_DEFAULT
-    
+
     echo "Removing /etc/modprobe.d/local.conf..."
-    sudo rm /etc/modprobe.d/local.conf 
-    
-    echo "Removing /etc/initram-fs/modules..."  
+    sudo rm /etc/modprobe.d/local.conf
+
+    echo "Removing /etc/initram-fs/modules..."
     sudo rm /etc/initram-fs/modules
 }
 
