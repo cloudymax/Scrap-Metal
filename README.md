@@ -16,6 +16,25 @@ QEMU/KVM Virtual Machines on your own hardware.
 - GPU acceleration
 - VNC and RDP support
 
+
+## Host OS Support
+
+Scrap metal is built to run on X86 AMD64 Ubuntu Server host machines that have
+been pre-provisioned with a tools like [Pxeless](https://github.com/cloudymax/pxeless), 
+[Cloud-Init](https://cloudinit.readthedocs.io/en/latest/), [Ansible](https://www.ansible.com/overview/how-ansible-works) etc...
+
+
+## Guest OS support
+
+- Ubuntu Linux guests created from cloud images
+
+- Other Linux distros supported via ISO/LiveUSB install.
+
+- Windows guests installed from ISO
+
+- MacOS guest support is enabled via [MacOS-KVM](https://github.com/kholia/OSX-KVM).
+
+
 ## Why QEMU?
 
 [QEMU](https://www.qemu.org/documentation/) is an open source machine emulator and virtualizer. It can be used for __system emulation__, where it provides a virtual model of an entire machine to run a guest OS or it may work with a another hypervisor like KVM or Xen. QEMU can also provide __user mode emulation__, where QEMU can launch processes compiled for one CPU on another CPU via emulation.
@@ -31,29 +50,6 @@ QEMU is special amongst its counterparts for a couple important reasons:
 
 These qualities make QEMU well-suited for those seeking a general-purpose hypervisor running the first layer of virtualization. For maximum speed or density though, you should consider if the lighter, but less generalized LXD, Firecracker, or Cloud-Hypervisor better suits your needs.
 
-## Other projects to check out:
-
-- [Quickemu](https://github.com/quickemu-project/quickemu) After using scrap-metal to get your host configured, use quick-emu to launch all kinds of virtual machines, not just ubuntu and debian server.
-- [cannoli](https://github.com/MarginResearch/cannoli) Use Cannoli to profile your QEMU virtual machines to identity performance issues in code.
-- [multipass](https://github.com/canonical/multipass) Multipass is a cross-platform VMM that can get you to a linux environment from anywhere. Especially useful since it has great support for ARM64 and supports cloud-init. No GPU passthrough possible though.
-- [Cloud Hypervisor](https://github.com/cloud-hypervisor/cloud-hypervisor) Intel's spin off of QEMU, this porject (formerly called NEMU) is based on the Rust VMM just like Amazon's Firecracker but it supports PCI passthrough and other useful features that firecracker cannot accomodate. Cloud Hypervisor also  powers the [Kubevirt](https://kubevirt.io/) project.
-- [Metal3](https://metal3io.netlify.app/) The Metal³ project (pronounced: “Metal Kubed”) provides components for bare metal host management with Kubernetes. You can enrol your bare metal machines, provision operating system images, and then, if you like, deploy Kubernetes clusters to them. 
-
-## Host OS Support
-
-Scrap metal is built to run on X86 AMD64 Ubuntu Server host machines that have
-been pre-provisioned with a tools like [Pxeless](https://github.com/cloudymax/pxeless), 
-[Cloud-Init](https://cloudinit.readthedocs.io/en/latest/), [Ansible](https://www.ansible.com/overview/how-ansible-works) etc...
-
-## Guest OS support
-
-- Ubuntu Linux guests created from cloud images
-
-- Other Linux distros supported via ISO/LiveUSB install.
-
-- Windows guests installed from ISO
-
-- MacOS guest support is enabled via [MacOS-KVM](https://github.com/kholia/OSX-KVM).
 
 ## Disclaimers and Warnings
 
@@ -75,7 +71,8 @@ There are garunteed to be issues across hardware models and vendors.
 To minimize the chances of misconfiguration follow the full-process of 
 re-imaging your host with the supported ISO.
 
-## Helper Scripts still to add to the TUI and CLI (WiP)
+
+## Helper Scripts
 
 The TUI and CLI are being created to wrap the multitude of small helper scripts and functions needed to make your Virtual machines work.
 
@@ -99,6 +96,15 @@ The TUI and CLI are being created to wrap the multitude of small helper scripts 
 
 `vmhost.sh`: get the PCI IDs of the GPU and alter grub and other config files to enable pass-
 through
+
+## Other projects to check out:
+
+- [Quickemu](https://github.com/quickemu-project/quickemu) After using scrap-metal to get your host configured, use quick-emu to launch all kinds of virtual machines, not just ubuntu and debian server.
+- [cannoli](https://github.com/MarginResearch/cannoli) Use Cannoli to profile your QEMU virtual machines to identity performance issues in code.
+- [multipass](https://github.com/canonical/multipass) Multipass is a cross-platform VMM that can get you to a linux environment from anywhere. Especially useful since it has great support for ARM64 and supports cloud-init. No GPU passthrough possible though.
+- [Cloud Hypervisor](https://github.com/cloud-hypervisor/cloud-hypervisor) Intel's spin off of QEMU, this porject (formerly called NEMU) is based on the Rust VMM just like Amazon's Firecracker but it supports PCI passthrough and other useful features that firecracker cannot accomodate. Cloud Hypervisor also  powers the [Kubevirt](https://kubevirt.io/) project.
+- [Metal3](https://metal3io.netlify.app/) The Metal³ project (pronounced: “Metal Kubed”) provides components for bare metal host management with Kubernetes. You can enrol your bare metal machines, provision operating system images, and then, if you like, deploy Kubernetes clusters to them. 
+
 
 ## Tunnels
 
