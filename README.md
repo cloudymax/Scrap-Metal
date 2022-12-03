@@ -31,6 +31,15 @@ QEMU is special amongst its counterparts for a couple important reasons:
 
 These qualities make QEMU well-suited for those seeking a general-purpose hypervisor running the first layer of virtualization. For maximum speed or density though, you should consider if the lighter, but less generalized LXD, Firecracker, or Cloud-Hypervisor better suits your needs.
 
+## Other projects to check out:
+
+- [Quickemu](https://github.com/quickemu-project/quickemu) After using scrap-metal to get your host configured, use quick-emu to launch all kinds of virtual machines, not just ubuntu and debian server.
+- [cannoli](https://github.com/MarginResearch/cannoli) Use Cannoli to profile your QEMU virtual machines to identity performance issues in code.
+- [multipass](https://github.com/canonical/multipass) Multipass is a cross-platform VMM that can get you to a linux environment from anywhere. Especially useful since it has great support for ARM64 and supports cloud-init. No GPU passthrough possible though.
+- [Cloud Hypervisor](https://github.com/cloud-hypervisor/cloud-hypervisor) Intel's spin off of QEMU, this porject (formerly called NEMU) is based on the Rust VMM just like Amazon's Firecracker but it supports PCI passthrough and other useful features that firecracker cannot accomodate. Cloud Hypervisor also  powers the [Kubevirt](https://kubevirt.io/) project.
+- [Metal3](https://metal3io.netlify.app/) The Metal³ project (pronounced: “Metal Kubed”) provides components for bare metal host management with Kubernetes. You can enrol your bare metal machines, provision operating system images, and then, if you like, deploy Kubernetes clusters to them. 
+
+
 ## Networking options
 
 There are multiple ways to handle networking. Example diagrams for SLIRP and Tap/Tun networking are porvided below.
