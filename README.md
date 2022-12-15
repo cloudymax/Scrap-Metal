@@ -2,8 +2,7 @@
 
 <img align="right" width="40%" height="50%" src="https://raw.githubusercontent.com/cloudymax/Scrap-Metal/main/media/Virtualization.drawio.svg">
 
-The boring boilerplate you need to create performant
-QEMU/KVM Virtual Machines on your own hardware. 
+My notes on setting up GPU accelerated virtual machines using only FOSS tools.
 
 ## Features:
 
