@@ -1,0 +1,63 @@
+site_name: Scrap Metal
+theme:
+  name: material
+  font:
+    text: Lato
+    code: Inconsolata
+  features:
+  - navigation.tabs
+  - navigation.tabs.sticky
+  - navigation.indexes
+  - toc.integrate
+  palette:
+    - media: "(prefers-color-scheme: dark)"
+      scheme: max-dark
+      toggle:
+        icon: material/toggle-switch
+        name: switch to light mode
+    - media: "(prefers-color-scheme: light)"
+      scheme: max-lite
+      toggle:
+        icon: material/toggle-switch-off-outline
+        name: switch to dark mode
+extra_css:
+  - stylesheets/extra.css
+extra_javascript:
+  - javascripts/mathjax.js
+  - https://polyfill.io/v3/polyfill.min.js?features=es6
+  - https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js
+  - javascripts/extra.js
+markdown_extensions:
+  - tables
+  - abbr
+  - admonition
+  - attr_list
+  - def_list
+  - footnotes
+  - md_in_html
+  - meta
+  - pymdownx.arithmatex:
+      generic: true
+  - pymdownx.betterem:
+      smart_enable: all
+  - pymdownx.caret
+  - pymdownx.details
+  - pymdownx.emoji:
+      emoji_index: !!python/name:materialx.emoji.twemoji
+      emoji_generator: !!python/name:materialx.emoji.to_svg
+  - pymdownx.highlight:
+      linenums: true
+  - pymdownx.highlight
+  - pymdownx.inlinehilite
+  - pymdownx.keys
+  - pymdownx.mark
+  - pymdownx.smartsymbols
+  - pymdownx.superfences
+  - pymdownx.snippets
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.tasklist:
+      custom_checkbox: true
+  - pymdownx.tilde
+nav:
+    - Home: Home.md
