@@ -1,26 +1,35 @@
 # Scrap Metal
 
-<img align="right" width="40%" height="50%" src="https://raw.githubusercontent.com/cloudymax/Scrap-Metal/main/media/Virtualization.drawio.svg">
+My notes on the creation of GPU-enabled VMs using FOSS tooling only.
 
-The boring boilerplate you need to create performant
-QEMU/KVM Virtual Machines on your own hardware. 
+<img align="right" width="50%" height="50%" src="../media/Virtualization.drawio.svg">
 
-## Features:
+## Requirements
 
-- Free and Open-Source
-- Seamless provisioning via cloud-init 
-- Compatible with Azure/AWS/GCP and other clouds
-- VM creation from LiveUSB/ISO images
-- Static IP address assignment via Tap/Tun networking
-- PCI-e/iommu pass-through
-- GPU acceleration
-- VNC and RDP support
+- A x86_64 computer capable of running Ubuntu or Debian server
+- Intel CPU* with at least 2c/4t
+- Nvidia GPU*
+- 4GB RAM
+- 16GB HDD
+- Wired network connection
+- Internet Access
+- Non-Bluetooth Keyboard
+- A USB flash drive
+
+Be advised that the requirement for Intel and Nvidia hardware applies only to GPU passthrough scenarios. Non GPU-accelerated instances will work with AMD/Arm hardware just fine. AMD GPU acceleration is possible but untested as the author has no access to any AMD-based systems.
+
+
+## Design Consraints:
+
+- Only use Free and Open-Source software for this guide. Users should not have to purchase any addition licenses or software to follow this guide.
+- Remain cloud-agnostic. The project should be deployable to any/most major infrastructure providers as well as local metal.
+- The networking scenarios are limited to SLIRP, Tap/Tun, and Wireguard VPN. I would like to support BGP but I do not have the bandwidth to take on that ticket.
 
 
 ## Host OS Support
 
-Scrap metal is built to run on X86 AMD64 Ubuntu Server host machines that have
-been pre-provisioned with a tools like [Pxeless](https://github.com/cloudymax/pxeless), 
+Scrap metal is built to run on X86 AMD64 Ubuntu Server and Debian 12 host machines that have
+been pre-provisioned with a tools like [Pxeless](https://github.com/cloudymax/pxeless),
 [Cloud-Init](https://cloudinit.readthedocs.io/en/latest/), [Ansible](https://www.ansible.com/overview/how-ansible-works) etc...
 
 
@@ -44,8 +53,8 @@ QEMU is special amongst its counterparts for a couple important reasons:
   - Like [ESXi](https://www.vmware.com/nl/products/esxi-and-esx.html), its capable of PCI passthrough for GPUs ([VirtualBox](https://docs.oracle.com/en/virtualization/virtualbox/6.0/user/guestadd-video.html) cant help us here)
   - Unlike ESXi, it's free
   - It's multi-platform
-  - It's fast - not as fast as [LXD](https://linuxcontainers.org/lxd/introduction/), [FireCracker](https://firecracker-microvm.github.io/), or [Cloud-Hypervisor](https://github.com/cloud-hypervisor/cloud-hypervisor) (formerly [NEMU](https://github.com/intel/nemu)), but its far more mature and thoroughly documented. 
-  - Unlike a [system container](https://linuxcontainers.org/lxd/introduction/) or [Multipass](https://multipass.run/docs) it can create windows hosts 
+  - It's fast - not as fast as [LXD](https://linuxcontainers.org/lxd/introduction/), [FireCracker](https://firecracker-microvm.github.io/), or [Cloud-Hypervisor](https://github.com/cloud-hypervisor/cloud-hypervisor) (formerly [NEMU](https://github.com/intel/nemu)), but its far more mature and thoroughly documented.
+  - Unlike a [system container](https://linuxcontainers.org/lxd/introduction/) or [Multipass](https://multipass.run/docs) it can create windows hosts
   - [Unlike Firecracker](https://github.com/firecracker-microvm/firecracker/issues/849#issuecomment-464731628) it supports pinning memmory addresses where firecracker cannot because it would break their core feature of over-subscription.
 
 These qualities make QEMU well-suited for those seeking a general-purpose hypervisor running the first layer of virtualization. For maximum speed or density though, you should consider if the lighter, but less generalized LXD, Firecracker, or Cloud-Hypervisor better suits your needs.
@@ -53,22 +62,22 @@ These qualities make QEMU well-suited for those seeking a general-purpose hyperv
 
 ## Disclaimers and Warnings
 
-* There are system-specific kernel modules that must be in-place for features 
-like IOMMU/VirtIO passthrough to work properly. While non-accelerated 
-Linux/Windows guests will work without these steps, they are a hard requirement 
+* There are system-specific kernel modules that must be in-place for features
+like IOMMU/VirtIO passthrough to work properly. While non-accelerated
+Linux/Windows guests will work without these steps, they are a hard requirement
 for MacOS and GPU-enabled guests.
 
-* Support for other Debian-Based distros on the host is a W.I.P 
+* Support for other Debian-Based distros on the host is a W.I.P
 and blocked by pre-seed support.
 
 * GPU passthrough is supported for Intel CPU's and Nvidia GPU's ONLY.
-This is because I don't have any AMD hardware, not because it isnt possible. 
+This is because I don't have any AMD hardware, not because it isnt possible.
 
 * GPU Acceleration relies on [X11vnc](https://github.com/LibVNC/x11vnc) or [Nvidia Container Runtime](https://github.com/NVIDIA/nvidia-container-runtime). This means you need a screen, or [monitor stub](https://finddiffer.com/hdmi-dummy-plug-what-is-it-and-how-do-you-use-it/) attached to the host machine. Laptops that use Nvidia Optimus or Prime don't need to worry about this as theres a monitor hard-wired into your GPU anyway.
- 
-* Support for the process for preparing a Host for GPU-passthrough is best-effort only. 
-There are garunteed to be issues across hardware models and vendors. 
-To minimize the chances of misconfiguration follow the full-process of 
+
+* Support for the process for preparing a Host for GPU-passthrough is best-effort only.
+There are garunteed to be issues across hardware models and vendors.
+To minimize the chances of misconfiguration follow the full-process of
 re-imaging your host with the supported ISO.
 
 
@@ -103,7 +112,7 @@ through
 - [cannoli](https://github.com/MarginResearch/cannoli) Use Cannoli to profile your QEMU virtual machines to identity performance issues in code.
 - [multipass](https://github.com/canonical/multipass) Multipass is a cross-platform VMM that can get you to a linux environment from anywhere. Especially useful since it has great support for ARM64 and supports cloud-init. No GPU passthrough possible though.
 - [Cloud Hypervisor](https://github.com/cloud-hypervisor/cloud-hypervisor) Intel's spin off of QEMU, this porject (formerly called NEMU) is based on the Rust VMM just like Amazon's Firecracker but it supports PCI passthrough and other useful features that firecracker cannot accomodate. Cloud Hypervisor also  powers the [Kubevirt](https://kubevirt.io/) project.
-- [Metal3](https://metal3io.netlify.app/) The Metal³ project (pronounced: “Metal Kubed”) provides components for bare metal host management with Kubernetes. You can enrol your bare metal machines, provision operating system images, and then, if you like, deploy Kubernetes clusters to them. 
+- [Metal3](https://metal3io.netlify.app/) The Metal³ project (pronounced: “Metal Kubed”) provides components for bare metal host management with Kubernetes. You can enrol your bare metal machines, provision operating system images, and then, if you like, deploy Kubernetes clusters to them.
 
 
 ## Tunnels
@@ -113,7 +122,7 @@ rdp tunnel over ssh:
  ssh -L 3389:10.0.2.15:3389 176.9.44.19 -p23 -l max -N
  ssh -L 3389:<vm-private-ip>:3389 <host-ip> -p<vm-ssh-port> -l max -N
 ```
- 
+
 ## Roadmap
 
 - Support for [LookingGlass](https://github.com/gnif/LookingGlass)

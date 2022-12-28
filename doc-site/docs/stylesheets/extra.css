@@ -1,0 +1,863 @@
+:root {
+
+  /* Grays */
+  --transparent: rgba(0,0,0,0);
+  --gray-50: rgba(20, 20, 20, 1);
+  --gray-40: rgba(40, 40, 40, 1);
+  --gray-30: rgba(50, 50, 50, 1);
+  --gray-20: rgba(80, 80, 80, 1);
+  --gray-10: rgba(100, 100, 100, 1);
+
+  /* CSS HEX */
+  --gray-50-hex: #333333ff;
+  --gray-40-hex: #8e8e8eff;
+  --gray-30-hex: #e3e3e3ff;
+  --gray-20-hex: #f2f2f2ff;
+  --gray-10-hex: #fafafaff;
+
+
+	--gloabl-padding: .5%;
+	--header-padding: 0;
+	--list-padding: .5%;
+	--list-decorator: "> ";
+	--margins: 0%;
+
+	--letter-spacing-f1: 1px;
+	--letter-spacing-f2: 1px;
+
+	--font-size: 18px;
+	--line-height: 24px;
+
+	--title-line-height:  1;
+	--elipsis-multiplier: 1;
+	--header1-multiplier: 1.3;
+	--header2-multiplier: 1.2;
+	--header3-multiplier: 1;
+	--header4-multiplier: 1;
+	--link-multiplier: 1.1;
+	--emp-multiplier:  1.1;
+	--blockquote-multiplier: 1;
+	--list-multiplier: 1;
+
+	--font-weight-h1:   600;
+	--font-weight-h2:   600;
+	--font-weight-h3:   500;
+	--font-weight-h4:   500;
+	--font-weight-link: 400;
+	--font-weight-text: 400;
+	--font-weight-emp:  400;
+	--font-weight-list: 400;
+
+	--shadow-x-max:       .3;
+	--shadow-y-max:       1;
+	--shadow-radius:      1px;
+	--brightness:         90%;
+
+	--text-y:             -2px;
+	--text-x:             -5px;
+	--text-z:             -0px;
+}
+[data-md-color-scheme="max-lite"]  {
+	--bg-alpha: 1;
+	--bg-r: 230;
+	--bg-g: 230;
+	--bg-b: 230;
+	--bg: rgba(var(--bg-r), var(--bg-g), var(--bg-b), var(--bg-alpha));
+
+	--gradient-color1:   rgba(16, 10, 30, 1);
+	--gradient-c1-amt:   80%;
+	--gradient-color2:   rgba(15, 15, 20, 1);
+	--gradient-c2-amt:   90%;
+	--gradient-x:        -10.8%;
+	--gradient-y:        -50.3%;
+
+	--graydient: radial-gradient(var(--gray-10-hex), var(--gray-50-hex) 200% );
+	--bg-gradient: var(--gray-50);
+	--bg-size: 100% 200%;
+	--bg-repeat: yes;
+
+	--header-alpha: 1;
+	--header-r:  11;
+	--header-g:  11;
+	--header-b:  11;
+	--header: rgba(var(--header-r), var(--header-g), var(--header-b), var(--header-alpha));
+	--header-brightness: 1;
+
+	--header-contrast-alpha: 1;
+	--header-contrast-r:  250;
+	--header-contrast-g:  250;
+	--header-contrast-b:  250;
+	--header-contrast: rgba(var(--header-contrast-r), var(--header-contrast-g), var(--header-contrast-b), var(--header-contrast-alpha));
+	--header-contrast-brightness: 1;
+
+	--card-bg-alpha: .5;
+	--card-bg-r:  11;
+	--card-bg-g:  11;
+	--card-bg-b:  11;
+	--card-bg: rgba(var(--card-bg-r), var(--card-bg-g), var(--card-bg-b), var(--card-bg-alpha));
+	--card-text: var(--header-contrast);
+
+	--code-bg-alpha: 0;
+	--code-bg-r: 1;
+	--code-bg-g: 1;
+	--code-bg-b: 1;
+	--code-bg: rgba(var(--code-bg-r), var(--code-bg-g), var(--code-bg-b), var(--code-bg-alpha));
+
+    --primary-alpha: .7;
+    --primary-r: 20;
+    --primary-g: 20;
+    --primary-b: 20;
+    --primary: rgba(var(--primary-r), var(--primary-g), var(--primary-b), var(--primary-alpha));
+
+	--pop-alpha: 1;
+	--pop-r:  020;
+	--pop-g:  120;
+	--pop-b:  180;
+	--pop: rgba(var(--pop-r), var(--pop-g), var(--pop-b), var(--pop-alpha));
+	--pop-active:rgb(var(--pop-r), var(--pop-g), var(--pop-b));
+	--pop-brightness: 10px;
+
+	--text-alpha: 1;
+	--text-r: 1;
+	--text-g: 1;
+	--text-b: 1;
+	--text: rgba(var(--text-r), var(--text-g), var(--text-b), var(--text-alpha));
+    --text-brightness: 10px;
+	--text-glow: rgba(var(--text-r), var(--text-g), var(--text-b), var(--text-brightness));
+
+	--shadow-x: 1px;
+	--shadow-x-max: .3;
+	--shadow-y: 1px;
+	--shadow-y-max: 1;
+	--shadow-radius: 2px;
+	--brightness: 90%;
+	--shadow-alpha: 1;
+	--shadow-r: 51;
+	--shadow-g: 51;
+	--shadow-b: 51;
+	--shadow: rgba(var(--shadow-r), var(--shadow-g), var(--shadow-b), var(--shadow-alpha));
+
+	--border-radius: 10px;
+	--border-style: solid;
+
+    /* search bar cursor and active text */
+    --md-default-fg-color: var(--text);
+    /* h1 headers and >'s, link highlights, TOC nav highlight, hover1 */
+    --md-default-fg-color--light: var(--primary);
+    /* scroll bars and markers un-hovered */
+    --md-default-fg-color--lighter: rgba(var(--pop-r), var(--pop-g), var(--pop-b), 1);
+    /* horizontal lines and icons unhovered, search header background */
+    --md-default-fg-color--lightest: var(--bg);
+    /* HTML page Background color */
+    --md-default-bg-color: var(--bg);
+    /*?*/
+    --md-default-bg-color--light: rgba(49, 218, 7, .8);
+    /*?*/
+    --md-default-bg-color--lighter: rgb(253, 99, 10);
+    /*?*/
+    --md-default-bg-color--lightest: rgb(235, 14, 243);
+    /*header background*/
+    --md-primary-fg-color: var(--transparent);
+    /*?*/
+    --md-primary-fg-color--light: var(--header);
+    /*?*/
+    --md-primary-fg-color--dark: var(--header);
+    /* header text and icon color */
+    --md-primary-bg-color: var(--header-contrast);
+    /* search bar initial text */
+    --md-primary-bg-color--light: var(--header-contrast);
+    /* Hover color2 + search syntax highlight */
+    --md-accent-fg-color: var(--header);
+    /* search result highlight */
+    --md-accent-fg-color--transparent: rgba(var(--primary-r), var(--primary-g), var(--primary-b), .2);
+    /*?*/
+    --md-accent-bg-color: rgba(2, 22, 222, 1);
+    /*?*/
+    --md-accent-bg-color--light: rgba(235, 14, 243, 1);
+    /* default text color in a code block */
+
+    --md-code-fg-color: var(--header-contrast);
+	--md-code-bg-color: var(--code-bg);
+	--md-code-hl-color: rgb(207, 62, 200);
+	--md-code-hl-number-color: rgb(252, 17, 173);
+	--md-code-hl-special-color: hsla(340, 83%, 47%, 1);
+	--md-code-hl-function-color: hsla(291, 45%, 50%, 1);
+	--md-code-hl-constant-color: rgb(89, 214, 245);
+	--md-code-hl-keyword-color: hsla(219, 54%, 51%, 1);
+	--md-code-hl-string-color: rgb(250, 175, 104);
+	--md-code-hl-name-color: rgb(244, 243, 247);
+	--md-code-hl-operator-color: rgb(250, 167, 111);
+	--md-code-hl-punctuation-color: rgb(250, 69, 69);
+	--md-code-hl-comment-color: rgba(10,220,100,1);
+	--md-code-hl-generic-color: rgba(222,222,222,1);
+    --md-code-hl-variable-color: var(--header-contrast);
+    /* Main Font Color */
+	--md-typeset-color: var(--text);
+	--md-typeset-a-color: var(--pop);
+    /*?*/
+    --md-typeset-mark-color: rgba(212,2,212,1);
+    /*?*/
+    --md-typeset-del-color: rgba(255,25,255,1);
+    /*?*/
+    --md-typeset-ins-color: rgba(255,25,255,1);
+    /*?*/
+    --md-typeset-kbd-color: rgba(255,25,255,1);
+    /*?*/
+    --md-typeset-kbd-accent-color: rgba(255,25,255,1);
+    /*?*/
+    --md-typeset-kbd-border-color: rgba(255,25,255,1);
+    /*?*/
+    --md-typeset-table-color: var(--pop);
+    /*?*/
+    --md-admonition-fg-color: var(--text);
+    /*?*/
+    --md-admonition-bg-color: var(--header-contrast);
+}
+[data-md-color-scheme="max-dark"]  {
+	--bg-alpha: 1;
+	--bg-r: 20;
+	--bg-g: 20;
+	--bg-b: 25;
+	--bg: rgba(var(--bg-r), var(--bg-g), var(--bg-b), var(--bg-alpha));
+
+	--gradient-color1:   rgba(16, 10, 30, 1);
+	--gradient-c1-amt:   80%;
+	--gradient-color2:   rgba(15, 15, 20, 1);
+	--gradient-c2-amt:   90%;
+	--gradient-x:        -10.8%;
+	--gradient-y:        -50.3%;
+
+	--graydient: radial-gradient(var(--gray-50-hex), var(--gray-40-hex) 800% );
+	--bg-gradient: var(--bg);
+	--bg-size: 100% 100%;
+	--bg-repeat: yes;
+
+	--header-alpha: 1;
+	--header-r:     215;
+	--header-g:     210;
+	--header-b:     210;
+	--header: rgba(var(--header-r), var(--header-g), var(--header-b), var(--header-alpha));
+	--header-brightness: 1;
+
+	--header-contrast-alpha: 1;
+	--header-contrast-r:  15;
+	--header-contrast-g:  15;
+	--header-contrast-b:  15;
+	--header-contrast: rgba(var(--header-contrast-r), var(--header-contrast-g), var(--header-contrast-b), var(--header-contrast-alpha));
+	--header-contrast-brightness: 1;
+
+	--card-bg-alpha: .7;
+	--card-bg-r:  255;
+	--card-bg-g:  250;
+	--card-bg-b:  250;
+	--card-bg: rgba(var(--card-bg-r), var(--card-bg-g), var(--card-bg-b), var(--card-bg-alpha));
+	--card-text: var(--header-contrast)
+
+	--code-bg-alpha: 0;
+	--code-bg-r: 1;
+	--code-bg-g: 1;
+	--code-bg-b: 1;
+	--code-bg: rgba(var(--code-bg-r), var(--code-bg-g), var(--code-bg-b), var(--code-bg-alpha));
+
+    --primary-alpha: 1;
+    --primary-r:  220;
+    --primary-g:  220;
+    --primary-b:  220;
+    --primary: rgba(var(--primary-r), var(--primary-g), var(--primary-b), var(--primary-alpha));
+
+	--pop-alpha: 1;
+	--pop-r: 050;
+	--pop-g: 120;
+	--pop-b: 180;
+	--pop: rgba(var(--pop-r), var(--pop-g), var(--pop-b), var(--pop-alpha));
+
+
+	--shadow-x: 1px;
+	--shadow-x-max: .3;
+	--shadow-y: 1px;
+	--shadow-y-max: 1;
+	--shadow-radius: 2px;
+	--brightness: 90%;
+	--shadow-alpha: .4;
+	--shadow-r: 51;
+	--shadow-g: 51;
+	--shadow-b: 51;
+	--shadow: rgba(var(--shadow-r), var(--shadow-g), var(--shadow-b), var(--shadow-alpha));
+
+	--text-alpha: 1;
+	--text-r: 255;
+	--text-g: 255;
+	--text-b: 255;
+	--text: rgba(var(--text-r), var(--text-g), var(--text-b), var(--text-alpha));
+    --text-brightness: .1;
+	--text-glow: rgba(var(--text-r), var(--text-g), var(--text-b), var(--text-brightness));
+	--border-radius: 10px;
+	--border-style: solid;
+
+	/* search bar cursor and active text */
+	--md-default-fg-color: var(--text);
+	/* h1 headers and >'s, link highlights, TOC nav highlight, hover1 */
+	--md-default-fg-color--light: var(--pop);
+	/* scroll bars and markers un-hovered */
+	--md-default-fg-color--lighter: rgba(var(--pop-r), var(--pop-g), var(--pop-b), 1);
+	/* horizontal lines and icons unhovered, search header background */
+	--md-default-fg-color--lightest: var(--text);
+	/* HTML page Background color */
+	--md-default-bg-color: var(--bg);
+	/*?*/
+	--md-default-bg-color--light: rgba(49, 218, 7, .8);
+	/*?*/
+	--md-default-bg-color--lighter: rgb(253, 99, 10);
+	/*?*/
+	--md-default-bg-color--lightest: rgb(235, 14, 243);
+	/*header background*/
+	--md-primary-fg-color: var(--transparent);
+	/*?*/
+	--md-primary-fg-color--light: var(--header);
+	/*?*/
+	--md-primary-fg-color--dark: var(--header);
+	/* header text and icon color */
+	--md-primary-bg-color: var(--header-contrast);
+	/* search bar initial text */
+	--md-primary-bg-color--light: var(--header-contrast);
+	/* Hover color2 + search syntax highlight */
+	--md-accent-fg-color: rgba(var(--pop-r), var(--pop-g), var(--pop-b), 1);
+	/* search result highlight */
+	--md-accent-fg-color--transparent: rgba(var(--primary-r), var(--primary-g), var(--primary-b), .2);
+	/*?*/
+	--md-accent-bg-color: rgba(2, 22, 222, 1);
+	/*?*/
+	--md-accent-bg-color--light: rgba(235, 14, 243, 1);
+	/* default text color in a code block */
+	--md-code-fg-color: var(--text);
+	--md-code-bg-color: var(--code-bg);
+	--md-code-hl-color: rgb(207, 62, 200);
+	--md-code-hl-number-color: rgb(252, 17, 173);
+	--md-code-hl-special-color: hsla(340, 83%, 47%, 1);
+	--md-code-hl-function-color: hsla(291, 45%, 50%, 1);
+	--md-code-hl-constant-color: rgb(89, 214, 245);
+	--md-code-hl-keyword-color: hsla(219, 54%, 51%, 1);
+	--md-code-hl-string-color: rgb(250, 175, 104);
+	--md-code-hl-name-color: rgb(244, 243, 247);
+	--md-code-hl-operator-color: rgb(250, 167, 111);
+	--md-code-hl-punctuation-color: rgb(250, 69, 69);
+	--md-code-hl-comment-color: rgba(10,220,100,1);
+	--md-code-hl-generic-color: rgba(222,222,222,1);
+	--md-code-hl-variable-color: var(--text);
+	/* Main Font Color */
+	--md-typeset-color: var(--text);
+	--md-typeset-a-color: var(--pop);
+	/*?*/
+	--md-typeset-mark-color: rgba(212,2,212,1);
+	/*?*/
+	--md-typeset-del-color: rgba(255,25,255,1);
+	/*?*/
+	--md-typeset-ins-color: rgba(255,25,255,1);
+	/*?*/
+	--md-typeset-kbd-color: rgba(255,25,255,1);
+	/*?*/
+	--md-typeset-kbd-accent-color: rgba(255,25,255,1);
+	/*?*/
+	--md-typeset-kbd-border-color: rgba(255,25,255,1);
+	/*?*/
+	--md-typeset-table-color: var(--primary);
+	/*?*/
+	--md-admonition-fg-color: var(--text);
+	/*?*/
+	--md-admonition-bg-color: var(--header-contrast);
+}
+a:active, a:link {
+	color: var(--text);
+	font-size: calc(var(--link-multiplier) * var(--font-size));
+	line-height: var(--title-line-height);
+ }
+a:hover {
+	color: var(--text);
+	filter: drop-shadow(var(--shadow-x) var(--shadow-y) 5px var(--pop));
+ }
+strong, emp {
+    color: var(--text);
+    font-size: calc(var(--emp-multiplier) * var(--font-size));
+    line-height: var(--title-line-height);
+    font-weight: var(--font-weight-emp)!important;
+  }
+.md-nav--lifted, .md-nav__list, .md-nav__item--active {
+    margin-top: 0;
+    color: var(--text);
+    font-size: calc(var(--link-multiplier) * var(--font-size));
+    font-weight: var(--font-weight-link);
+    line-height: var(--title-line-height);
+}
+.md-tabs__link {
+	background: var(--transparent);
+	font-size: calc(var(--link-multiplier) * var(--font-size));
+	font-weight: var(--font-weight-link);
+	line-height: var(--title-line-height);
+	color: var(--header-contrast)!important;
+}
+.md-header, .md-header--lifted{
+	background-color: var(--header);
+}
+.md-nav__link, a.md-button:active {
+	color: var(--header)!important;
+	font-weight: var(--font-weight-text);
+}
+.md-button {
+	scale: 70%;
+}
+.md-button--primary {
+	color: var(--header-contrast)!important;
+	background-color: var(--header)!important;
+}
+.md-nav__title {
+	background: var(--bg)!important;
+	color: var(--pop)!important;
+	padding-left: 5%!important;
+	padding-top: 2%;
+	padding-bottom: 2%;
+}
+.md-nav__list, .md-nav, .md-nav--primary, .md-nav--lifted, .md-nav--integrated{
+	background: var(--bg)!important;
+	padding: var(--global-padding);
+}
+.highlight {
+	background: rgba(0,0,0,1);
+}
+.md-ellipsis {
+	font-size: calc(var(--elipsis-multiplier) * var(--font-size));
+	font-weight: var(--font-weight-link);
+	color: var(--header-contrast);
+}
+.md-nav__link--active {
+	color: var(--text);
+}
+h1, h2, h3, h4 {
+	line-height: var(--title-line-height)!important;
+}
+h1 {
+	font-size: calc(var(--header1-multiplier) * var(--font-size));
+	font-weight: var(--font-weight-h1)!important;
+}
+h2 {
+	font-size: calc(var(--header2-multiplier) * var(--font-size));
+	font-weight: var(--font-weight-h2)!important;
+}
+h3 {
+	font-size: calc(var(--header3-multiplier) * var(--font-size));
+	font-weight: var(--font-weight-h3)!important;
+}
+h4 {
+	font-size: calc(var(--header4-multiplier) * var(--font-size));
+	font-weight: var(--font-weight-h4)!important;
+}
+h5 {
+	font-size: calc(var(--header4-multiplier) * var(--font-size));
+	font-weight: var(--font-weight-h4)!important;
+}
+ol, li {
+	font-size: calc(var(--list-multiplier) * var(--font-size));
+	font-weight: var(--font-weight-list)!important;
+}
+strong {
+	font-size: calc(var(--list-multiplier) * var(--font-size));
+	font-weight: var(--font-weight-list)!important;
+	list-style: none;
+}
+blockquote {
+  color: rgba(var(--text-r), var(--text-g), var(--text-b), 1);
+  font-size: calc(var(--font-size) * var(--blockquote-multiplier));
+  font-weight: var(--font-weight-text)!important;
+}
+table {
+	border-collapse: collapse;
+	border-color: var(--pop);
+	background-color: var(--code-bg)!important;
+}
+.wrap {
+	width: 200px;
+	margin: 0 auto;
+	background: white;
+}
+.md-grid {
+	max-width: 80vw;
+}
+.md-button {
+  filter: drop-shadow(var(--shadow-x) var(--shadow-y) var(--shadow-radius) var(--header));
+}
+.md-icon{
+	color: var(--pop)!important;
+}
+@keyframes lightinout {
+	0%   { --brightness:  55%; }
+	10%  { --brightness:  60%; }
+	20%  { --brightness:  65%; }
+	30%  { --brightness:  70%; }
+	40%  { --brightness:  75%; }
+	50%  { --brightness:  80%; }
+	60%  { --brightness:  85%; }
+	70%  { --brightness:  90%; }
+	80%  { --brightness:  95%; }
+	90%  { --brightness:  100%;}
+	100% { --brightness:  95%; }
+}
+ @keyframes lift-up {
+	0%  { --text-y: -1px; }
+	10% { --text-y: -2px; }
+	20% { --text-y: -3px; }
+	30% { --text-y: -4px; }
+	40% { --text-y: -5px; }
+	50% { --text-y: -6px; }
+	60% { --text-y: -7px; }
+	70% { --text-y: -8px; }
+	80% { --text-y: -9px; }
+	90% { --text-y: -10px;}
+	100% { --text-y: -11px;}
+}
+ @keyframes march {
+	5% {
+	  text-shadow:
+	  calc(var(--shadow-x-max) * 1px) calc(var(--shadow-y-max) * 1px) 0 rgba(calc(var(--pop-r) * .9), calc(var(--pop-g) * .9), calc(var(--pop-b) * .9), calc(var(--pop-alpha) / 1 )),
+	  calc(var(--shadow-x-max) * 8px) calc(var(--shadow-y-max) * 8px) 0 rgba(calc(var(--shadow-r) * .9), calc(var(--shadow-g) * .9), calc(var(--shadow-b) * .9), calc(var(--shadow-alpha))),
+	  calc(var(--shadow-x-max) * 9px) calc(var(--shadow-y-max) * 9px) var(--shadow-radius) rgba(var(--shadow-r), var(--shadow-g), var(--shadow-b), var(--shadow-alpha)),
+	  calc(var(--shadow-x-max) * 9px) calc(var(--shadow-y-max) * 9px) var(--shadow-radius) rgba(var(--pop-r), var(--pop-g), var(--pop-b), var(--shadow-alpha));
+   }
+	10% {
+	  text-shadow:
+	  calc(var(--shadow-x-max) * 1px) calc(var(--shadow-y-max) * 1px) 0 rgba(calc(var(--pop-r) * .9), calc(var(--pop-g) * .9), calc(var(--pop-b) * .9), calc(var(--pop-alpha) / 1 )),
+	  calc(var(--shadow-x-max) * 2px) calc(var(--shadow-y-max) * 2px) 0 rgba(calc(var(--pop-r) * .9), calc(var(--pop-g) * .9), calc(var(--pop-b) * .9), calc(var(--pop-alpha) / 1.2 )),
+	  calc(var(--shadow-x-max) * 8px) calc(var(--shadow-y-max) * 8px) 0 rgba(calc(var(--shadow-r) * .9), calc(var(--shadow-g) * .9), calc(var(--shadow-b) * .9), calc(var(--shadow-alpha))),
+	  calc(var(--shadow-x-max) * 9px) calc(var(--shadow-y-max) * 9px) var(--shadow-radius) rgba(var(--shadow-r), var(--shadow-g), var(--shadow-b), var(--shadow-alpha)),
+	  calc(var(--shadow-x-max) * 9px) calc(var(--shadow-y-max) * 9px) var(--shadow-radius) rgba(var(--pop-r), var(--pop-g), var(--pop-b), var(--shadow-alpha));
+   }
+   20% {
+	text-shadow:
+	  calc(var(--shadow-x-max) * 1px) calc(var(--shadow-y-max) * 1px) 0 rgba(calc(var(--pop-r) * .9), calc(var(--pop-g) * .9), calc(var(--pop-b) * .9), calc(var(--pop-alpha) / 1 )),
+	  calc(var(--shadow-x-max) * 2px) calc(var(--shadow-y-max) * 2px) 0 rgba(calc(var(--pop-r) * .9), calc(var(--pop-g) * .9), calc(var(--pop-b) * .9), calc(var(--pop-alpha) / 1.2 )),
+	  calc(var(--shadow-x-max) * 3px) calc(var(--shadow-y-max) * 3px) 0 rgba(calc(var(--pop-r) * .8), calc(var(--pop-g) * .8), calc(var(--pop-b) * .8), calc(var(--pop-alpha) / 1.3 )),
+	  calc(var(--shadow-x-max) * 8px) calc(var(--shadow-y-max) * 8px) 0 rgba(calc(var(--shadow-r) * .9), calc(var(--shadow-g) * .9), calc(var(--shadow-b) * .9), calc(var(--shadow-alpha))),
+	  calc(var(--shadow-x-max) * 9px) calc(var(--shadow-y-max) * 9px) var(--shadow-radius) rgba(var(--shadow-r), var(--shadow-g), var(--shadow-b), var(--shadow-alpha)),
+	  calc(var(--shadow-x-max) * 9px) calc(var(--shadow-y-max) * 9px) var(--shadow-radius) rgba(var(--pop-r), var(--pop-g), var(--pop-b), var(--shadow-alpha));
+   }
+   30% {
+	text-shadow:
+	  calc(var(--shadow-x-max) * 1px) calc(var(--shadow-y-max) * 1px) 0 rgba(calc(var(--pop-r) * .9), calc(var(--pop-g) * .9), calc(var(--pop-b) * .9), calc(var(--pop-alpha) / 1 )),
+	  calc(var(--shadow-x-max) * 2px) calc(var(--shadow-y-max) * 2px) 0 rgba(calc(var(--pop-r) * .9), calc(var(--pop-g) * .9), calc(var(--pop-b) * .9), calc(var(--pop-alpha) / 1.2 )),
+	  calc(var(--shadow-x-max) * 3px) calc(var(--shadow-y-max) * 3px) 0 rgba(calc(var(--pop-r) * .8), calc(var(--pop-g) * .8), calc(var(--pop-b) * .8), calc(var(--pop-alpha) / 1.3 )),
+	  calc(var(--shadow-x-max) * 4px) calc(var(--shadow-y-max) * 4px) 0 rgba(calc(var(--pop-r) * .8), calc(var(--pop-g) * .8), calc(var(--pop-b) * .8), calc(var(--pop-alpha) / 1.4 )),
+	  calc(var(--shadow-x-max) * 8px) calc(var(--shadow-y-max) * 8px) 0 rgba(calc(var(--shadow-r) * .9), calc(var(--shadow-g) * .9), calc(var(--shadow-b) * .9), calc(var(--shadow-alpha))),
+	  calc(var(--shadow-x-max) * 9px) calc(var(--shadow-y-max) * 9px) var(--shadow-radius) rgba(var(--shadow-r), var(--shadow-g), var(--shadow-b), var(--shadow-alpha)),
+	  calc(var(--shadow-x-max) * 9px) calc(var(--shadow-y-max) * 9px) var(--shadow-radius) rgba(var(--pop-r), var(--pop-g), var(--pop-b), var(--shadow-alpha));
+   }
+   40% {
+	text-shadow:
+	  calc(var(--shadow-x-max) * 1px) calc(var(--shadow-y-max) * 1px) 0 rgba(calc(var(--pop-r) * .9), calc(var(--pop-g) * .9), calc(var(--pop-b) * .9), calc(var(--pop-alpha) / 1 )),
+	  calc(var(--shadow-x-max) * 2px) calc(var(--shadow-y-max) * 2px) 0 rgba(calc(var(--pop-r) * .9), calc(var(--pop-g) * .9), calc(var(--pop-b) * .9), calc(var(--pop-alpha) / 1.2 )),
+	  calc(var(--shadow-x-max) * 3px) calc(var(--shadow-y-max) * 3px) 0 rgba(calc(var(--pop-r) * .8), calc(var(--pop-g) * .8), calc(var(--pop-b) * .8), calc(var(--pop-alpha) / 1.3 )),
+	  calc(var(--shadow-x-max) * 4px) calc(var(--shadow-y-max) * 4px) 0 rgba(calc(var(--pop-r) * .8), calc(var(--pop-g) * .8), calc(var(--pop-b) * .8), calc(var(--pop-alpha) / 1.4 )),
+	  calc(var(--shadow-x-max) * 5px) calc(var(--shadow-y-max) * 5px) 0 rgba(calc(var(--pop-r) * .8), calc(var(--pop-g) * .8), calc(var(--pop-b) * .8), calc(var(--pop-alpha) / 1.5 )),
+	  calc(var(--shadow-x-max) * 8px) calc(var(--shadow-y-max) * 8px) 0 rgba(calc(var(--shadow-r) * .9), calc(var(--shadow-g) * .9), calc(var(--shadow-b) * .9), calc(var(--shadow-alpha))),
+	  calc(var(--shadow-x-max) * 9px) calc(var(--shadow-y-max) * 9px) var(--shadow-radius) rgba(var(--shadow-r), var(--shadow-g), var(--shadow-b), var(--shadow-alpha)),
+	  calc(var(--shadow-x-max) * 9px) calc(var(--shadow-y-max) * 9px) var(--shadow-radius) rgba(var(--pop-r), var(--pop-g), var(--pop-b), var(--shadow-alpha));
+   }
+   50% {
+	text-shadow:
+	  calc(var(--shadow-x-max) * 1px) calc(var(--shadow-y-max) * 1px) 0 rgba(calc(var(--pop-r) * .9), calc(var(--pop-g) * .9), calc(var(--pop-b) * .9), calc(var(--pop-alpha) / 1 )),
+	  calc(var(--shadow-x-max) * 2px) calc(var(--shadow-y-max) * 2px) 0 rgba(calc(var(--pop-r) * .9), calc(var(--pop-g) * .9), calc(var(--pop-b) * .9), calc(var(--pop-alpha) / 1.2 )),
+	  calc(var(--shadow-x-max) * 3px) calc(var(--shadow-y-max) * 3px) 0 rgba(calc(var(--pop-r) * .8), calc(var(--pop-g) * .8), calc(var(--pop-b) * .8), calc(var(--pop-alpha) / 1.3 )),
+	  calc(var(--shadow-x-max) * 4px) calc(var(--shadow-y-max) * 4px) 0 rgba(calc(var(--pop-r) * .8), calc(var(--pop-g) * .8), calc(var(--pop-b) * .8), calc(var(--pop-alpha) / 1.4 )),
+	  calc(var(--shadow-x-max) * 5px) calc(var(--shadow-y-max) * 5px) 0 rgba(calc(var(--pop-r) * .8), calc(var(--pop-g) * .8), calc(var(--pop-b) * .8), calc(var(--pop-alpha) / 1.5 )),
+	  calc(var(--shadow-x-max) * 6px) calc(var(--shadow-y-max) * 6px) 0 rgba(calc(var(--pop-r) * .8), calc(var(--pop-g) * .8), calc(var(--pop-b) * .8), calc(var(--pop-alpha) / 1.6 )),
+	  calc(var(--shadow-x-max) * 8px) calc(var(--shadow-y-max) * 8px) 0 rgba(calc(var(--shadow-r) * .9), calc(var(--shadow-g) * .9), calc(var(--shadow-b) * .9), calc(var(--shadow-alpha))),
+	  calc(var(--shadow-x-max) * 9px) calc(var(--shadow-y-max) * 9px) var(--shadow-radius) rgba(var(--shadow-r), var(--shadow-g), var(--shadow-b), var(--shadow-alpha)),
+	  calc(var(--shadow-x-max) * 9px) calc(var(--shadow-y-max) * 9px) var(--shadow-radius) rgba(var(--pop-r), var(--pop-g), var(--pop-b), var(--shadow-alpha));
+   }
+   60% {
+	text-shadow:
+	  calc(var(--shadow-x-max) * 1px) calc(var(--shadow-y-max) * 1px) 0 rgba(calc(var(--pop-r) * .9), calc(var(--pop-g) * .9), calc(var(--pop-b) * .9), calc(var(--pop-alpha) / 1 )),
+	  calc(var(--shadow-x-max) * 2px) calc(var(--shadow-y-max) * 2px) 0 rgba(calc(var(--pop-r) * .9), calc(var(--pop-g) * .9), calc(var(--pop-b) * .9), calc(var(--pop-alpha) / 1.2 )),
+	  calc(var(--shadow-x-max) * 3px) calc(var(--shadow-y-max) * 3px) 0 rgba(calc(var(--pop-r) * .8), calc(var(--pop-g) * .8), calc(var(--pop-b) * .8), calc(var(--pop-alpha) / 1.3 )),
+	  calc(var(--shadow-x-max) * 4px) calc(var(--shadow-y-max) * 4px) 0 rgba(calc(var(--pop-r) * .8), calc(var(--pop-g) * .8), calc(var(--pop-b) * .8), calc(var(--pop-alpha) / 1.4 )),
+	  calc(var(--shadow-x-max) * 5px) calc(var(--shadow-y-max) * 5px) 0 rgba(calc(var(--pop-r) * .8), calc(var(--pop-g) * .8), calc(var(--pop-b) * .8), calc(var(--pop-alpha) / 1.5 )),
+	  calc(var(--shadow-x-max) * 6px) calc(var(--shadow-y-max) * 6px) 0 rgba(calc(var(--pop-r) * .8), calc(var(--pop-g) * .8), calc(var(--pop-b) * .8), calc(var(--pop-alpha) / 1.6 )),
+	  calc(var(--shadow-x-max) * 7px) calc(var(--shadow-y-max) * 7px) 0 rgba(calc(var(--pop-r) * .8), calc(var(--pop-g) * .8), calc(var(--pop-b) * .8), calc(var(--pop-alpha) / 1.7 )),
+	  calc(var(--shadow-x-max) * 8px) calc(var(--shadow-y-max) * 8px) 0 rgba(calc(var(--shadow-r) * .9), calc(var(--shadow-g) * .9), calc(var(--shadow-b) * .9), calc(var(--shadow-alpha))),
+	  calc(var(--shadow-x-max) * 9px) calc(var(--shadow-y-max) * 9px) var(--shadow-radius) rgba(var(--shadow-r), var(--shadow-g), var(--shadow-b), var(--shadow-alpha)),
+	  calc(var(--shadow-x-max) * 9px) calc(var(--shadow-y-max) * 9px) var(--shadow-radius) rgba(var(--pop-r), var(--pop-g), var(--pop-b), var(--shadow-alpha));
+   }
+   70% {
+	text-shadow:
+	  calc(var(--shadow-x-max) * 1px) calc(var(--shadow-y-max) * 1px) 0 rgba(calc(var(--pop-r) * .9), calc(var(--pop-g) * .9), calc(var(--pop-b) * .9), calc(var(--pop-alpha) / 1 )),
+	  calc(var(--shadow-x-max) * 2px) calc(var(--shadow-y-max) * 2px) 0 rgba(calc(var(--pop-r) * .9), calc(var(--pop-g) * .9), calc(var(--pop-b) * .9), calc(var(--pop-alpha) / 1.2 )),
+	  calc(var(--shadow-x-max) * 3px) calc(var(--shadow-y-max) * 3px) 0 rgba(calc(var(--pop-r) * .8), calc(var(--pop-g) * .8), calc(var(--pop-b) * .8), calc(var(--pop-alpha) / 1.3 )),
+	  calc(var(--shadow-x-max) * 4px) calc(var(--shadow-y-max) * 4px) 0 rgba(calc(var(--pop-r) * .8), calc(var(--pop-g) * .8), calc(var(--pop-b) * .8), calc(var(--pop-alpha) / 1.4 )),
+	  calc(var(--shadow-x-max) * 8px) calc(var(--shadow-y-max) * 8px) 0 rgba(calc(var(--shadow-r) * .9), calc(var(--shadow-g) * .9), calc(var(--shadow-b) * .9), calc(var(--shadow-alpha))),
+	  calc(var(--shadow-x-max) * 9px) calc(var(--shadow-y-max) * 9px) var(--shadow-radius) rgba(var(--shadow-r), var(--shadow-g), var(--shadow-b), var(--shadow-alpha)),
+	  calc(var(--shadow-x-max) * 9px) calc(var(--shadow-y-max) * 9px) var(--shadow-radius) rgba(var(--pop-r), var(--pop-g), var(--pop-b), var(--shadow-alpha));
+   }
+80% {
+	text-shadow:
+	  calc(var(--shadow-x-max) * 1px) calc(var(--shadow-y-max) * 1px) 0 rgba(calc(var(--pop-r) * .9), calc(var(--pop-g) * .9), calc(var(--pop-b) * .9), calc(var(--pop-alpha) / 1 )),
+	  calc(var(--shadow-x-max) * 2px) calc(var(--shadow-y-max) * 2px) 0 rgba(calc(var(--pop-r) * .9), calc(var(--pop-g) * .9), calc(var(--pop-b) * .9), calc(var(--pop-alpha) / 1.2 )),
+	  calc(var(--shadow-x-max) * 3px) calc(var(--shadow-y-max) * 3px) 0 rgba(calc(var(--pop-r) * .8), calc(var(--pop-g) * .8), calc(var(--pop-b) * .8), calc(var(--pop-alpha) / 1.3 )),
+	  calc(var(--shadow-x-max) * 4px) calc(var(--shadow-y-max) * 4px) 0 rgba(calc(var(--pop-r) * .8), calc(var(--pop-g) * .8), calc(var(--pop-b) * .8), calc(var(--pop-alpha) / 1.4 )),
+	  calc(var(--shadow-x-max) * 8px) calc(var(--shadow-y-max) * 8px) 0 rgba(calc(var(--shadow-r) * .9), calc(var(--shadow-g) * .9), calc(var(--shadow-b) * .9), calc(var(--shadow-alpha))),
+	  calc(var(--shadow-x-max) * 9px) calc(var(--shadow-y-max) * 9px) var(--shadow-radius) rgba(var(--shadow-r), var(--shadow-g), var(--shadow-b), var(--shadow-alpha)),
+	  calc(var(--shadow-x-max) * 9px) calc(var(--shadow-y-max) * 9px) var(--shadow-radius) rgba(var(--pop-r), var(--pop-g), var(--pop-b), var(--shadow-alpha));
+   }
+90% {
+	text-shadow:
+	  calc(var(--shadow-x-max) * 1px) calc(var(--shadow-y-max) * 1px) 0 rgba(calc(var(--pop-r) * .9), calc(var(--pop-g) * .9), calc(var(--pop-b) * .9), calc(var(--pop-alpha) / 1 )),
+	  calc(var(--shadow-x-max) * 2px) calc(var(--shadow-y-max) * 2px) 0 rgba(calc(var(--pop-r) * .9), calc(var(--pop-g) * .9), calc(var(--pop-b) * .9), calc(var(--pop-alpha) / 1.2 )),
+	  calc(var(--shadow-x-max) * 3px) calc(var(--shadow-y-max) * 3px) 0 rgba(calc(var(--pop-r) * .8), calc(var(--pop-g) * .8), calc(var(--pop-b) * .8), calc(var(--pop-alpha) / 1.3 )),
+	  calc(var(--shadow-x-max) * 4px) calc(var(--shadow-y-max) * 4px) 0 rgba(calc(var(--pop-r) * .8), calc(var(--pop-g) * .8), calc(var(--pop-b) * .8), calc(var(--pop-alpha) / 1.4 )),
+	  calc(var(--shadow-x-max) * 8px) calc(var(--shadow-y-max) * 8px) 0 rgba(calc(var(--shadow-r) * .9), calc(var(--shadow-g) * .9), calc(var(--shadow-b) * .9), calc(var(--shadow-alpha))),
+	  calc(var(--shadow-x-max) * 9px) calc(var(--shadow-y-max) * 9px) var(--shadow-radius) rgba(var(--shadow-r), var(--shadow-g), var(--shadow-b), var(--shadow-alpha)),
+	  calc(var(--shadow-x-max) * 9px) calc(var(--shadow-y-max) * 9px) var(--shadow-radius) rgba(var(--pop-r), var(--pop-g), var(--pop-b), var(--shadow-alpha));
+   }
+100% {
+	text-shadow:
+	  calc(var(--shadow-x-max) * 1px) calc(var(--shadow-y-max) * 1px) 0 rgba(calc(var(--pop-r) * .9), calc(var(--pop-g) * .9), calc(var(--pop-b) * .9), calc(var(--pop-alpha) / 1 )),
+	  calc(var(--shadow-x-max) * 2px) calc(var(--shadow-y-max) * 2px) 0 rgba(calc(var(--pop-r) * .9), calc(var(--pop-g) * .9), calc(var(--pop-b) * .9), calc(var(--pop-alpha) / 1.2 )),
+	  calc(var(--shadow-x-max) * 3px) calc(var(--shadow-y-max) * 3px) 0 rgba(calc(var(--pop-r) * .8), calc(var(--pop-g) * .8), calc(var(--pop-b) * .8), calc(var(--pop-alpha) / 1.3 )),
+	  calc(var(--shadow-x-max) * 4px) calc(var(--shadow-y-max) * 4px) 0 rgba(calc(var(--pop-r) * .8), calc(var(--pop-g) * .8), calc(var(--pop-b) * .8), calc(var(--pop-alpha) / 1.4 )),
+	  calc(var(--shadow-x-max) * 8px) calc(var(--shadow-y-max) * 8px) 0 rgba(calc(var(--shadow-r) * .9), calc(var(--shadow-g) * .9), calc(var(--shadow-b) * .9), calc(var(--shadow-alpha))),
+	  calc(var(--shadow-x-max) * 9px) calc(var(--shadow-y-max) * 9px) var(--shadow-radius) rgba(var(--shadow-r), var(--shadow-g), var(--shadow-b), var(--shadow-alpha)),
+	  calc(var(--shadow-x-max) * 9px) calc(var(--shadow-y-max) * 9px) var(--shadow-radius) rgba(var(--pop-r), var(--pop-g), var(--pop-b), var(--shadow-alpha));
+ }
+}
+@keyframes fadein {
+
+	0% { --shadow-alpha: 0%; --brightness: 55%; --text-y: -1px; --shadow-x-max: .1; --shadow-y-max: -.1; }
+
+	10% {--shadow-alpha: 10%; --brightness: 60%; --text-y: -2px; --shadow-x-max: .2; --shadow-y-max: -.2; }
+	20% {
+		--shadow-alpha: 20%;
+		--brightness: 65%;
+		--text-y: -3px;
+		--shadow-x-max: .3;
+		--shadow-y-max: -.3;
+	}
+	30% {
+		--shadow-alpha: 30%;
+		--brightness: 70%;
+		--text-y: -4px;
+		--shadow-x-max: .4;
+		--shadow-y-max: -.4;
+	}
+	40%  {
+		--shadow-alpha: 40%,
+		--brightness: 75%;
+		--text-y: -5px;
+		--shadow-x-max: .5;
+		--shadow-y-max: -.5;
+	  }
+	50%  {
+		--shadow-alpha: 50%;
+		--brightness: 80%;
+		--text-y: -6px;
+		--shadow-x-max: .6;
+		--shadow-y-max: -.6;
+	  }
+	60%  {
+		--shadow-alpha: 60%;
+		--brightness: 85%;
+		--text-y: -7px;
+		--shadow-x-max: .7;
+		--shadow-y-max: -.7;
+	  }
+	70%  {
+		--shadow-alpha: 70%;
+		--brightness: 90%;
+		--text-y: -8px;
+		--shadow-x-max: .8;
+		--shadow-y-max: -.8;
+	  }
+	80%  {
+		--shadow-alpha: 80%;
+		--brightness: 95%;
+		--text-y: -9px;
+		--shadow-x-max: .9;
+		--shadow-y-max: -.9;
+	  }
+	90%  {
+		--shadow-alpha: 90%;
+		--brightness: 100%;
+		--text-y: -10px;
+		--shadow-x-max: 1;
+		--shadow-y-max: -1;
+	   ;}
+	100% {
+		--shadow-alpha: 100%;
+		--brightness: 95%;
+		--text-y: -11px;
+		--shadow-x-max: 1.1;
+		--shadow-y-max: -1.1;
+	   ;}
+}
+ @keyframes Gradient {
+	  0% {
+		background-position: 0% 50%;
+	  }
+	  50% {
+		background-position: 100% 50%;
+	  }
+	  100% {
+		background-position: 0% 50%;
+	  }
+}
+.md-footer {
+	background: var(--header);
+}
+.md-typeset :is(.admonition, details):is(.example){
+	border-color: var(--pop)
+
+}
+.md-typeset :is(.example) > :is(.admonition-title, summary){
+	background-color: var(--header)
+}
+.md-typeset :is(.example) > :is(.admonition-title, summary)::before {
+	background-color: var(--pop);
+}
+.md-typeset blockquote {
+    border-left: .2rem solid var(--md-default-fg-color--lighter);
+    color: var(--text);
+    padding-left: .6rem;
+}
+.md-typeset{
+	font-size: calc(var(--header2-multiplier) * var(--font-size));
+}
+body {
+	padding: var(--global-padding);
+	font-size: var(--font-size);
+	margin-top: var(--margin);
+	margin-bottom: var(--margin);
+	margin-right: var(--margin);
+	margin-left: var(--margin);
+	margin: 0;
+	box-shadow: inset 0 0 100% black;
+	height: 100vh;
+	width: 100%;
+	z-index: -100;
+}
+p {
+	font-size: var(--font-size)!important;
+	text-indent: 0%;
+	line-height: var(--line-height);
+	letter-spacing: var(--letter-spacing-f1);
+	color: var(--text);
+	font-weight: var(--font-weight-text)!important;
+ }
+ .card-container {
+	display: flex;
+	justify-content: center;
+	flex-direction: row;
+	font-family: 'Lato', sans-serif;
+	color: var(--header-contrast);
+	z-index: 100;
+	margin: auto;
+	filter: drop-shadow(2px 2px 5px rgb(0 0 0 / 0.8));
+	border-radius: var(--border-radius);
+	background-color: var(--card-bg);
+ }
+ .card {
+	min-width: 80%;
+	min-height: 80%;
+ }
+ .card-body p, .card-body h1, .card-body h2, .card-body h3, .card-body h4 {
+	 color: var(--header-contrast)!important;
+ }
+ .card-header {
+    text-align: center;
+	font-family: 'Lato', sans-serif;
+	color: var(--header-contrast);
+	padding-left: 3%;
+	padding-right: 3%;
+	padding-bottom: 0%;
+	padding-top: 0%;
+	z-index: 100;
+}
+ .card-body {
+    text-align: center;
+	color: var(--header-contrast);
+	font-family: 'Lato', sans-serif;
+	padding-left: 3%;
+	padding-right: 3%;
+	padding-bottom: 0%;
+	padding-top: 0%;
+	z-index: 100;
+}
+.card-links {
+    text-align: center;
+	font-family: 'Lato', sans-serif;
+	font-size: calc(var(--link-multiplier) * var(--font-size));
+	padding-left: 3%;
+	padding-right: 3%;
+	padding-bottom: 0%;
+	padding-top: 0%;
+	line-height: 1%;;
+}
+.fa-twitter-square, .fa-linkedin-square, .fa-github-square {
+	padding-inline: 5%;
+	scale: 200%;
+	color: var(--pop);
+}
+.hero-bg {
+	background-image: var(--graydient);
+    -webkit-transform: translateX(-50%) translateY(-55%);
+    -moz-transform: translateX(-50%) translateY(-55%);
+    -ms-transform: translateX(-50%) translateY(-55%);
+    -o-transform: translateX(-50%) translateY(-55%);
+    transform: translateX(-50%) translateY(-55%);
+    position: absolute;
+    top: 47%;
+    left: 50%;
+    min-width: 100%;
+    min-height: 100%;
+    z-index: -100;
+	overflow: hidden!important;
+}
+.video-bg {
+    -webkit-transform: translateX(-50%) translateY(-50%);
+    -moz-transform: translateX(-50%) translateY(-50%);
+    -ms-transform: translateX(-50%) translateY(-50%);
+    -o-transform: translateX(-50%) translateY(-50%);
+    transform: translateX(-50%) translateY(-50%);
+    position: absolute;
+    top: 50%;
+    left: 50%;
+	min-height: 125%;
+	min-width: 125%;
+	overflow: hidden!important;
+}
+.md-typeset details{
+	padding-left: 1%;
+	padding-right: 1%;
+	overflow: hidden;
+	border-left: .1rem solid #448aff;
+	border-right: .1rem solid #448aff;
+	border-bottom: .1rem solid #448aff;
+}
+.md-typeset .example > summary::before {
+    background-color: var(--header-contrast);
+	padding: var(--global-padding);
+}
+.md-typeset .example > summary {
+    background-color: var(--header);
+    border-color: var(--header);
+	color: var(--header-contrast);
+}
+.md-typeset details.example {
+    border-color: var(--header);
+}
+.md-typeset details{
+	filter: drop-shadow(2px 2px 5px rgb(0 0 0 / 0.8));
+}
+p {
+	font-weight: var(--font-weight-h3)!important;
+}
+.md-footer-meta {
+	display: none;
+}
+.code, .lineos, .highlighttable {
+	font-size: var(--font-size)!important;
+}

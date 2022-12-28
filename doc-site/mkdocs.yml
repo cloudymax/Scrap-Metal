@@ -1,14 +1,15 @@
 site_name: Scrap Metal
+site_url: https://cloudydev.net
 theme:
   name: material
   font:
     text: Lato
     code: Inconsolata
   features:
-  - navigation.tabs
-  - navigation.tabs.sticky
-  - navigation.indexes
-  - toc.integrate
+    - navigation.tabs
+    - navigation.tabs.sticky
+    - navigation.indexes
+    - toc.integrate
   palette:
     - media: "(prefers-color-scheme: dark)"
       scheme: max-dark
@@ -60,4 +61,12 @@ markdown_extensions:
       custom_checkbox: true
   - pymdownx.tilde
 nav:
-    - Home: Home.md
+  - Home: Home.md
+  - QEMU: Qemu.md
+  - Supported Platforms: SupportedPlatforms.md
+  - Networking: Networking.md
+  - Screen Recording: Screen-Recording.md
+  - Resources:
+    - References: References.md
+    - Notes: Notes.md
+    - More References: MoreReferences.md
