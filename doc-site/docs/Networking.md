@@ -16,13 +16,13 @@ User Networking is implemented using "slirp", which provides a full TCP/IP stack
   3. on Linux hosts, ping does work from within the guest, but it needs initial setup by root (once per host) -- see the steps below
   4. the guest is not directly accessible from the host or the external network
 
-<img align="center" src="https://raw.githubusercontent.com/cloudymax/Scrap-Metal/main/media/ScrapMetal2.png">
+<img align="center" src="../media/ScrapMetal2.png">
 
 
 ## Tap
 
-The tap networking backend makes use of a tap networking device in the host. It offers very good performance and can be configured to create virtually any type of network topology. Unfortunately, it requires configuration of that network topology in the host which tends to be different depending on the operating system you are using. Generally speaking, it also requires that you have root privileges. 
+The tap networking backend makes use of a tap networking device in the host. It offers very good performance and can be configured to create virtually any type of network topology. Unfortunately, it requires configuration of that network topology in the host which tends to be different depending on the operating system you are using. Generally speaking, it also requires that you have root privileges.
 
 The scripts located in https://github.com/cloudymax/Scrap-Metal/tree/main/virtual-machines/host-config-resources will help you set this up.
 
-<img align="center" src="https://raw.githubusercontent.com/cloudymax/Scrap-Metal/main/media/ScrapMetal.png">
+<img align="center" src="../media/ScrapMetal.png">
