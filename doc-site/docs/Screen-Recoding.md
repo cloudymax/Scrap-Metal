@@ -75,6 +75,8 @@ For screen recording to work we need to ensure that we ensure certain capabiliti
 
 ## GPU
 
+https://git.dec05eba.com/gpu-screen-recorder/about/
+
 ```bash
 #!/bin/bash
 APP_NAME="OpenGl"
