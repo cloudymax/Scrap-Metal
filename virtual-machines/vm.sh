@@ -34,7 +34,7 @@ deps(){
 
         # Build the Cigen docker image
         # Todo: publish this image so we dont have to build it
-        docker build -f cloud-init-generator/Dockerfile -t cigen .
+        docker pull deserializeme/cigen:latest
 }
 
 # VM metadata
@@ -414,7 +414,7 @@ create_user_data(){
   cd ..
   docker run -it -v "${CLOUD_INIT_TEMPLATE}":/cloud-init-template.yaml \
     -v $(pwd)/$VM_NAME:/output \
-    cigen ./cigen.sh --update --upgrade \
+    deserializeme/cigen:latest ./cigen.sh --update --upgrade \
     --password "${PASSWD}" \
     --github-username "${GITHUB_USER}" \
     --username "${USER}" \
