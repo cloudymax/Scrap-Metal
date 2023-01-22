@@ -1,10 +1,8 @@
 # Scrap Metal
 
-<img align="right" width="40%" height="50%" src="https://raw.githubusercontent.com/cloudymax/Scrap-Metal/main/media/Virtualization.drawio.svg">
-
 My notes on setting up GPU accelerated virtual machines using only FOSS tools.
 
-## Features:
+## Subjects:
 
 - Free and Open-Source
 - Seamless provisioning via cloud-init 
@@ -18,14 +16,14 @@ My notes on setting up GPU accelerated virtual machines using only FOSS tools.
 
 ## Host OS Support
 
-Scrap metal is built to run on X86 AMD64 Ubuntu Server host machines that have
+Built to run on X86 AMD64 Ubuntu/Debian Server host machines that have
 been pre-provisioned with a tools like [Pxeless](https://github.com/cloudymax/pxeless), 
 [Cloud-Init](https://cloudinit.readthedocs.io/en/latest/), [Ansible](https://www.ansible.com/overview/how-ansible-works) etc...
 
 
 ## Guest OS support
 
-- Ubuntu Linux guests created from cloud images
+- Ubuntu and Debian Linux guests created from cloud images
 
 - Other Linux distros supported via ISO/LiveUSB install.
 
