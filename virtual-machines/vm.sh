@@ -30,7 +30,7 @@ export_metatdata(){
   # Base Image Options
   export CLOUD_IMAGE_URL="https://cloud.debian.org/images/cloud/bookworm/daily/latest/debian-12-generic-amd64-daily.qcow2"
   export CLOUD_IMAGE_NAME=$(basename "$CLOUD_IMAGE_URL")
-  export CLOUD_INIT_TEMPLATE="/home/$USER/repos/Scrap-Metal/virtual-machines/cigen-community-templates/debian-gnome.yaml"
+  export CLOUD_INIT_TEMPLATE="/home/$USER/repos/Scrap-Metal/virtual-machines/cigen-community-templates/slim.yaml"
   export ISO_FILE="/home/${USER}/repos/pxeless/ubuntu-autoinstall.iso"
 
   # VM Options
