@@ -22,18 +22,6 @@ deps(){
         # Cleanup apt
         sudo apt-get autoremove -y
 
-        # Get the latest cigen
-        git-force-clone \
-        https://github.com/cloudymax/cloud-init-generator \
-        cloud-init-generator
-
-        # Get the latest community templates
-        git-force-clone \
-        https://github.com/cloudymax/cigen-community-templates \
-        cigen-community-templates
-
-        # Build the Cigen docker image
-        # Todo: publish this image so we dont have to build it
         docker pull deserializeme/cigen:latest
 }
 
