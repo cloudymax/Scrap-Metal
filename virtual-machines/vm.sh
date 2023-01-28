@@ -13,7 +13,7 @@ deps(){
         ovmf \
         qemu-utils \
         cloud-image-utils \
-        ubuntu-drivers-common \
+        tmux \
         whois \
         git \
         git-extras \
@@ -28,22 +28,23 @@ deps(){
 # VM metadata
 export_metatdata(){
   # Base Image Options
-  export CLOUD_IMAGE_URL="https://cloud.debian.org/images/cloud/bookworm/daily/latest/debian-12-generic-amd64-daily.qcow2"
+  # export CLOUD_IMAGE_URL="https://cloud.debian.org/images/cloud/bookworm/daily/latest/debian-12-generic-amd64-daily.qcow2"
+  export CLOUD_IMAGE_URL="https://cloud.debian.org/images/cloud/bookworm/daily/20221210-1225/debian-12-generic-amd64-daily-20221210-1225.qcow2"
   export CLOUD_IMAGE_NAME=$(basename "$CLOUD_IMAGE_URL")
-  export CLOUD_INIT_TEMPLATE="/home/$USER/repos/Scrap-Metal/virtual-machines/cigen-community-templates/slim.yaml"
+  export CLOUD_INIT_TEMPLATE="https://raw.githubusercontent.com/cloudymax/cigen-community-templates/main/slim-static.yaml"
   export ISO_FILE="/home/${USER}/repos/pxeless/ubuntu-autoinstall.iso"
 
   # VM Options
   export VM_NAME="test"
   export VM_USER="${VM_NAME}admin"
   export GITHUB_USER="cloudymax"
-  export USER="max"
+  export USER="friend"
   export DISK_NAME="boot.img"
-  export DISK_SIZE="32G"
+  export DISK_SIZE="64G"
   export MEMORY="8G"
   export SOCKETS="1"
   export PHYSICAL_CORES="2"
-  export THREADS="2"
+  export THREADS="1"
   export SMP=$(( $SOCKETS * $PHYSICAL_CORES * $THREADS ))
   export VM_KEY=""
   export VM_KEY_FILE="$VM_USER"
@@ -52,7 +53,7 @@ export_metatdata(){
   export PASSWD="password"
 
   # GPU Options
-  export GPU_ACCEL="true"
+  export GPU_ACCEL="false"
 
   # Networking Options
   export STATIC_IP="true"
@@ -66,7 +67,7 @@ export_metatdata(){
   export TAP_DEVICE_NUMBER="0"
   export NETWORK_NUMBER="0"
   export BRIDGE_NAME="br0"
-
+  export INTERFACE="enp0s2"
 }
 
 # set network options
@@ -399,8 +400,12 @@ boot_windows_vm(){
 
 create_user_data(){
   log "👤 Generating user data"
+
   cd ..
-  docker run -it -v "${CLOUD_INIT_TEMPLATE}":/cloud-init-template.yaml \
+
+  wget -O cloud-init-template.yaml "${CLOUD_INIT_TEMPLATE}"
+
+  docker run -it -v $(pwd)/cloud-init-template.yaml:/cloud-init-template.yaml \
     -v $(pwd)/$VM_NAME:/output \
     deserializeme/cigen:latest ./cigen.sh --update --upgrade \
     --password "${PASSWD}" \
@@ -408,7 +413,7 @@ create_user_data(){
     --username "${USER}" \
     --vm-name "${VM_NAME}" \
     --template "/cloud-init-template.yaml" \
-    --extra-vars "VM_KEY=$VM_KEY,IP_ADDRESS=$STATIC_IP_ADDRESS,GATEWAY_IP=$IP_GATEWAY,DNS_SERVER_IP=$DNS_SERVER"
+    --extra-vars "VM_KEY=$VM_KEY,STATIC_IP_ADDRESS=$STATIC_IP_ADDRESS,GATEWAY_IP=$IP_GATEWAY,DNS_SERVER_IP=$DNS_SERVER,INTERFACE=$INTERFACE"
   cd $VM_NAME
 
 }
