@@ -17,7 +17,8 @@ deps(){
         whois \
         git \
         git-extras \
-        guestfs-tools
+        guestfs-tools \
+        bridge-utils
 
         # Cleanup apt
         sudo apt-get autoremove -y
