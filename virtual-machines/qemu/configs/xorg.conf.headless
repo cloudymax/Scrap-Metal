@@ -45,6 +45,6 @@ Section "Screen"
     Monitor        "Headless"
     Option         "UseDisplayDevice" "none"
     SubSection     "Display"
-        Virtual 1366 768
+        Virtual 1920 1080
     EndSubSection
 EndSection
