@@ -1,0 +1,43 @@
+---
+IMAGE:
+  CLOUD_IMAGE_URL: ""
+  CLOUD_IMAGE_NAME: ""
+  CLOUD_INIT_TEMPLATE: ""
+  ISO_FILE: ""
+VM:
+  VM_NAME: ""
+  VM_USER: ""
+  GITHUB_USER: ""
+  USER: ""
+  DISK_NAME: ""
+  DISK_SIZE: ""
+  MEMORY: ""
+  SOCKETS: ""
+  PHYSICAL_CORES: ""
+  THREADS: ""
+  SMP: ""
+  VM_KEY: ""
+  VM_KEY_FILE: ""
+  UUID: ""
+  MAC_ADDR: ""
+  PASSWD: ""
+GPU:
+  GPU_ACCEL: ""
+  GPU_VENDOR: ""
+  GPU_PCI_ID: ""
+NETWORK:
+  HOST:
+    HOST_ADDRESS: ""
+    DNS_SERVER: ""
+    IP_GATEWAY: ""
+    HOST_SSH_PORT: ""
+    HOST_INTERFACE: ""
+    BRIDGE_NAME: ""
+  GUEST:
+    STATIC_IP: ""
+    STATIC_IP_ADDRESS: ""
+    VM_SSH_PORT: ""
+    VNC_PORT: ""
+    TAP_DEVICE_NUMBER: ""
+    NETWORK_NUMBER: ""
+    INTERFACE: ""
