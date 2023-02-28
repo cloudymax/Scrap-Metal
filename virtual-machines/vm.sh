@@ -16,23 +16,33 @@ deps(){
         tmux \
         whois \
         git \
+	jq \
         git-extras \
         guestfs-tools
-
-        # Cleanup apt
-        sudo apt-get autoremove -y
-
-        docker pull deserializeme/cigen:latest
+    
+    # yq
+    VERSION="v4.31.1"
+    BINARY="yq_linux_amd64"
+    wget -O  $BINARY.tar.gz https://github.com/mikefarah/yq/releases/download/${VERSION}/${BINARY}.tar.gz
+    tar -xvf $BINARY.tar.gz
+    sudo mv $BINARY /usr/bin/yq
+    rm yq*
+    
+    # Cleanup apt
+    sudo apt-get autoremove -y
+    
+    # cigen 
+    docker pull deserializeme/cigen:latest
 }
 
 # VM metadata
 export_metatdata(){
   # Base Image Options
-  # export CLOUD_IMAGE_URL="https://cloud.debian.org/images/cloud/bookworm/daily/latest/debian-12-generic-amd64-daily.qcow2"
-  export CLOUD_IMAGE_URL="https://cloud.debian.org/images/cloud/bookworm/daily/20221210-1225/debian-12-generic-amd64-daily-20221210-1225.qcow2"
+  export CLOUD_IMAGE_URL="https://cloud.debian.org/images/cloud/bookworm/daily/latest/debian-12-generic-amd64-daily.qcow2"
+  #export CLOUD_IMAGE_URL="https://cloud.debian.org/images/cloud/bookworm/daily/20221210-1225/debian-12-generic-amd64-daily-20221210-1225.qcow2"
   export CLOUD_IMAGE_NAME=$(basename "$CLOUD_IMAGE_URL")
   export CLOUD_INIT_TEMPLATE="https://raw.githubusercontent.com/cloudymax/cigen-community-templates/main/slim-static.yaml"
-  export ISO_FILE="/home/${USER}/repos/pxeless/ubuntu-autoinstall.iso"
+  export ISO_FILE="/home/friend/repos/pxeless/ubuntu-autoinstall.iso"
 
   # VM Options
   export VM_NAME="test"
@@ -40,11 +50,11 @@ export_metatdata(){
   export GITHUB_USER="cloudymax"
   export USER="friend"
   export DISK_NAME="boot.img"
-  export DISK_SIZE="64G"
-  export MEMORY="8G"
+  export DISK_SIZE="32G"
+  export MEMORY="4G"
   export SOCKETS="1"
   export PHYSICAL_CORES="2"
-  export THREADS="1"
+  export THREADS="2"
   export SMP=$(( $SOCKETS * $PHYSICAL_CORES * $THREADS ))
   export VM_KEY=""
   export VM_KEY_FILE="$VM_USER"
@@ -54,54 +64,72 @@ export_metatdata(){
 
   # GPU Options
   export GPU_ACCEL="false"
+  export GPU_VENDOR="NVIDIA"
+  export GPU_PCI_ID=$(lspci |grep VGA |grep -ai $GPU_VENDOR |awk '{print $1}')
 
-  # Networking Options
-  export STATIC_IP="true"
-  export STATIC_IP_ADDRESS="192.168.50.101"
+  # Host Networking options
+  export HOST_ADDRESS="192.168.50.100"
   export DNS_SERVER="192.168.50.50"
   export IP_GATEWAY="192.168.50.1"
-  export HOST_ADDRESS="192.168.50.100"
   export HOST_SSH_PORT="22"
+  export HOST_INTERFACE="enp4s0"
+  export BRIDGE_NAME="br0"
+
+  # Guest Networking Options
+  export STATIC_IP="false"
+  export STATIC_IP_ADDRESS="192.168.50.101"
   export VM_SSH_PORT="1234"
   export VNC_PORT="0"
   export TAP_DEVICE_NUMBER="0"
   export NETWORK_NUMBER="0"
-  export BRIDGE_NAME="br0"
   export INTERFACE="enp0s2"
+}
+
+write_config(){
+cp ../config.yaml .
+yq '.IMAGE.CLOUD_IMAGE_URL = $CLOUD_IMAGE_URL' config.yaml
+
 }
 
 # set network options
 set_network(){
   log "📞 Setting networking options."
 
-  BRIDGE=$(brctl show |grep -w -c "$BRIDGE_NAME")
-  if [ "$BRIDGE" -gt "0" ]; then
-      echo "bridge exists"
-  else
-      echo "no bridge exists. Creating..."
-      #sudo ip link add "$BRIDGE_NAME" type bridge
-      #sudo ip link set "$BRIDGE_NAME" up
-      #sudo ip link set enp4s0 up
-      #sudo ip link set enp4s0 master "$BRIDGE_NAME"
-      #sudo ip addr flush dev enp4s0
-      #sudo ip addr add "$HOST_ADDRESS/24" brd + dev "$BRIDGE_NAME"
-      #sudo ip route add default via "$IP_GATEWAY" dev "$BRIDGE_NAME"
-  fi
-
-  #sudo ip tuntap add dev tap0 mode tap user root
-  #sudo ip link set dev tap0 up
-  #sudo ip link set tap0 master br0
-  #iptables -F FORWARD
-  #iptables -I FORWARD -m physdev --physdev-is-bridged -j ACCEPT
-  #brctl show
-  #sysctl -w net.ipv4.ip_forward=1
-
-
   if [[ "$STATIC_IP" == "true" ]]; then
     log " - Static IP selected."
+    
+    BRIDGE_EXISTS=$(sudo brctl show |grep -w -c "$BRIDGE_NAME")
+    if [ "$BRIDGE_EXISTS" -gt "0" ]; then
+        echo "bridge exists"
+    else
+        echo "Bridge $BRIDGE_NAME not found. Creating..."
+        sudo ip link add "$BRIDGE_NAME" type bridge
+        sudo ip link set "$BRIDGE_NAME" up
+        sudo ip link set "$HOST_INTERFACE" up
+        sudo ip link set "$HOST_INTERFACE" master "$BRIDGE_NAME"
+        sudo ip addr flush dev "$HOST_INTERFACE"
+        sudo ip addr add "$HOST_ADDRESS/24" brd + dev "$BRIDGE_NAME"
+        sudo ip route add default via "$IP_GATEWAY" dev "$BRIDGE_NAME"
+    fi
+  
+    TAP_EXISTS=$(sudo brctl show |grep -c "tap$TAP_DEVICE_NUMBER")
+    if [ "$TAP_EXISTS" -gt "0" ]; then
+        echo "tap$TAP_DEVICE_NUMBER exists."
+    else
+        sudo ip tuntap add dev "tap$TAP_DEVICE_NUMBER" mode tap user root
+        sudo ip link set dev "tap$TAP_DEVICE_NUMBER" up
+        sudo ip link set "tap$TAP_DEVICE_NUMBER" master "$BRIDGE_NAME"
+        sudo iptables -F FORWARD
+        sudo iptables -I FORWARD -m physdev --physdev-is-bridged -j ACCEPT
+        sudo brctl show
+        sudo sysctl -w net.ipv4.ip_forward=1
+    fi
+  
     export DEVICE="-device virtio-net-pci,netdev=network$NETWORK_NUMBER,mac=$MAC_ADDR \\"
     export NETDEV="-netdev tap,id=network$NETWORK_NUMBER,ifname=tap$TAP_DEVICE_NUMBER,script=no,downscript=no \\"
+  
   else
+    
     log " - Port Forwarding selected."
     export DEVICE="-device virtio-net-pci,netdev=network$NETWORK_NUMBER \\"
     export NETDEV="-netdev user,id=network$NETWORK_NUMBER,hostfwd=tcp::"${VM_SSH_PORT}"-:"${HOST_SSH_PORT}" \\"
@@ -117,7 +145,7 @@ set_gpu(){
     log " - GPU not attached"
   else
     export VGA_OPT="-vga virtio -serial stdio -parallel none \\"
-    export PCI_GPU="-device vfio-pci,host=02:00.0,multifunction=on,x-vga=on \\"
+    export PCI_GPU="-device vfio-pci,host=$GPU_PCI_ID,multifunction=on,x-vga=on \\"
     log " - GPU attached"
   fi
 }
@@ -362,9 +390,9 @@ create_windows_vm(){
     -cpu host,kvm="off",hv_vendor_id="null" \
     -smp $SMP,sockets="$SOCKETS",cores="$PHYSICAL_CORES",threads="$THREADS",maxcpus=$SMP \
     -m "$MEMORY" \
-    -drive id=disk0,if=virtio,cache=none,format=qcow2,file=/home/max/pxeless/virtual-machines/${VM_NAME}/$DISK_NAME \
-    -drive file=/home/max/pxeless/virtual-machines/images/Windows.iso,index=1,media=cdrom \
-    -drive file=/home/max/pxeless/virtual-machines/images/virtio-win-0.1.215.iso,index=2,media=cdrom \
+    -drive id=disk0,if=virtio,cache=none,format=qcow2,file=hdd.img \
+    -drive file=Win10_22H2_EnglishInternational_x64.iso,index=1,media=cdrom \
+    -drive file=virtio-win-0.1.215.iso,index=2,media=cdrom \
     -boot menu=on \
     -serial none \
     -parallel none \
@@ -384,14 +412,17 @@ boot_windows_vm(){
     -cpu host,kvm="off",hv_vendor_id="null" \
     -smp $SMP,sockets="$SOCKETS",cores="$PHYSICAL_CORES",threads="$THREADS",maxcpus=$SMP \
     -m "$MEMORY" \
-    -hda /home/max/pxeless/virtual-machines/${VM_NAME}/$DISK_NAME \
-    -drive file=/home/max/pxeless/virtual-machines/images/Windows.iso,index=1,media=cdrom \
-    -drive file=/home/max/pxeless/virtual-machines/images/virtio-win-0.1.215.iso,index=2,media=cdrom \
-    -boot c \
-    -serial stdio \
+    -drive id=disk0,if=virtio,cache=none,format=qcow2,file=hdd.img \
+    -drive id=disk1,if=virtio,cache=none,format=qcow2,file=hdd2.img \
+    -drive file=Win10_22H2_EnglishInternational_x64.iso,index=1,media=cdrom \
+    -drive file=virtio-win-0.1.215.iso,index=2,media=cdrom \
+    -boot menu=on \
+    -serial none \
     -parallel none \
-    $PCI_GPU
     -bios /usr/share/ovmf/OVMF.fd \
+    -usbdevice tablet \
+    $VGA_OPT
+    $PCI_GPU
     $NETDEV
     $DEVICE
     -vnc $HOST_ADDRESS:$VNC_PORT \
@@ -426,6 +457,7 @@ create-windows-vm(){
   set_vnc
   create_dir
   create_virtual_disk
+  qemu-img create -f qcow2 hdd2.img 256G
   create_windows_vm
   tmux_to_vm
 }
@@ -463,8 +495,6 @@ create-from-iso(){
   set_gpu
   set_vnc
   create_dir
-  create_user_data
-  generate_seed_iso
   create_virtual_disk
   create_vm_from_iso
 }
