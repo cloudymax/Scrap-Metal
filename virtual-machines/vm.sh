@@ -35,60 +35,58 @@ deps(){
     docker pull deserializeme/cigen:latest
 }
 
-# VM metadata
-export_metatdata(){
-  # Base Image Options
-  export CLOUD_IMAGE_URL="https://cloud.debian.org/images/cloud/bookworm/daily/latest/debian-12-generic-amd64-daily.qcow2"
-  #export CLOUD_IMAGE_URL="https://cloud.debian.org/images/cloud/bookworm/daily/20221210-1225/debian-12-generic-amd64-daily-20221210-1225.qcow2"
-  export CLOUD_IMAGE_NAME=$(basename "$CLOUD_IMAGE_URL")
-  export CLOUD_INIT_TEMPLATE="https://raw.githubusercontent.com/cloudymax/cigen-community-templates/main/slim-static.yaml"
-  export ISO_FILE="/home/friend/repos/pxeless/ubuntu-autoinstall.iso"
-
-  # VM Options
-  export VM_NAME="test"
-  export VM_USER="${VM_NAME}admin"
-  export GITHUB_USER="cloudymax"
-  export USER="friend"
-  export DISK_NAME="boot.img"
-  export DISK_SIZE="32G"
-  export MEMORY="4G"
-  export SOCKETS="1"
-  export PHYSICAL_CORES="2"
-  export THREADS="2"
+read_config(){
+  # VM OPTIONS
+  export VM_NAME="${1}"
+  export VM_USER=$(cat ${VM_NAME}/config.yaml | yq '.VM.VM_USER')
+  export GITHUB_USER=$(cat ${VM_NAME}/config.yaml | yq '.VM.GITHUB_USER')
+  export USER=$(cat ${VM_NAME}/config.yaml | yq '.VM.USER')
+  export DISK_NAME=$(cat ${VM_NAME}/config.yaml | yq '.VM.DISK_NAME')
+  export DISK_SIZE=$(cat ${VM_NAME}/config.yaml | yq '.VM.DISK_SIZE')
+  export MEMORY=$(cat ${VM_NAME}/config.yaml | yq '.VM.MEMORY')
+  export SOCKETS=$(cat ${VM_NAME}/config.yaml | yq '.VM.SOCKETS')
+  export PHYSICAL_CORES=$(cat ${VM_NAME}/config.yaml | yq '.VM.PHYSICAL_CORES')
+  export THREADS=$(cat ${VM_NAME}/config.yaml | yq '.VM.THREADS')
   export SMP=$(( $SOCKETS * $PHYSICAL_CORES * $THREADS ))
   export VM_KEY=""
-  export VM_KEY_FILE="$VM_USER"
-  export UUID="none"
-  export MAC_ADDR=$(printf 'AC:AB:13:12:%02X:%02X\n' $((RANDOM%256)) $((RANDOM%256)))
-  export PASSWD="password"
+  export VM_KEY_FILE=$(cat ${VM_NAME}/config.yaml | yq '.VM.VM_KEY_FILE')
+  export MAC_ADDR=$(cat ${VM_NAME}/config.yaml | yq '.VM.MAC_ADDR')
+  export PASSWD=$(cat ${VM_NAME}/config.yaml | yq '.VM.PASSWD')
 
   # GPU Options
-  export GPU_ACCEL="false"
-  export GPU_VENDOR="NVIDIA"
+  export GPU_ACCEL=$(cat ${VM_NAME}/config.yaml | yq '.GPU.GPU_ACCEL')
+  export GPU_VENDOR=$(cat ${VM_NAME}/config.yaml | yq '.GPU.GPU_VENDOR')
   export GPU_PCI_ID=$(lspci |grep VGA |grep -ai $GPU_VENDOR |awk '{print $1}')
 
+  # IMAGE OPTIONS
+  export CLOUD_IMAGE_URL=$(cat ${VM_NAME}/config.yaml | yq '.IMAGE.CLOUD_IMAGE_URL')
+  export CLOUD_IMAGE_NAME=$(basename "$CLOUD_IMAGE_URL")
+  export CLOUD_INIT_TEMPLATE=$(cat ${VM_NAME}/config.yaml | yq '.IMAGE.CLOUD_INIT_TEMPLATE')
+  export ISO_FILE=$(cat ${VM_NAME}/config.yaml | yq '.IMAGE.ISO_FILE')
+
   # Host Networking options
-  export HOST_ADDRESS="192.168.50.100"
-  export DNS_SERVER="192.168.50.50"
-  export IP_GATEWAY="192.168.50.1"
-  export HOST_SSH_PORT="22"
-  export HOST_INTERFACE="enp4s0"
-  export BRIDGE_NAME="br0"
+  export HOST_ADDRESS=$(cat ${VM_NAME}/config.yaml | yq '.NETWORK.HOST.HOST_ADDRESS')
+  export DNS_SERVER=$(cat ${VM_NAME}/config.yaml | yq '.NETWORK.HOST.DNS_SERVER')
+  export IP_GATEWAY=$(cat ${VM_NAME}/config.yaml | yq '.NETWORK.HOST.IP_GATEWAY')
+  export HOST_SSH_PORT=$(cat ${VM_NAME}/config.yaml | yq '.NETWORK.HOST.HOST_SSH_PORT')
+  export HOST_INTERFACE=$(cat ${VM_NAME}/config.yaml | yq '.NETWORK.HOST.HOST_INTERFACE')
+  export BRIDGE_NAME=$(cat ${VM_NAME}/config.yaml | yq '.NETWORK.HOST.BRIDGE_NAME')
 
   # Guest Networking Options
-  export STATIC_IP="false"
-  export STATIC_IP_ADDRESS="192.168.50.101"
-  export VM_SSH_PORT="1234"
-  export VNC_PORT="0"
-  export TAP_DEVICE_NUMBER="0"
-  export NETWORK_NUMBER="0"
-  export INTERFACE="enp0s2"
+  export STATIC_IP=$(cat ${VM_NAME}/config.yaml | yq '.NETWORK.GUEST.STATIC_IP')
+  export STATIC_IP_ADDRESS=$(cat ${VM_NAME}/config.yaml | yq '.NETWORK.GUEST.STATIC_IP_ADDRESS')
+  export VM_SSH_PORT=$(cat ${VM_NAME}/config.yaml | yq '.NETWORK.GUEST.VM_SSH_PORT')
+  export VNC_PORT=$(cat ${VM_NAME}/config.yaml | yq '.NETWORK.GUEST.VNC_PORT')
+  export TAP_DEVICE_NUMBER=$(cat ${VM_NAME}/config.yaml | yq '.NETWORK.GUEST.TAP_DEVICE_NUMBER')
+  export NETWORK_NUMBER=$(cat ${VM_NAME}/config.yaml | yq '.NETWORK.GUEST.NETWORK_NUMBER')
+  export INTERFACE=$(cat ${VM_NAME}/config.yaml | yq '.NETWORK.GUEST.INTERFACE')
 }
 
 write_config(){
-cp ../config.yaml .
-yq '.IMAGE.CLOUD_IMAGE_URL = $CLOUD_IMAGE_URL' config.yaml
-
+    export_metatdata
+    cp config.yaml "${VM_NAME}"/config.yaml
+    yq e -i '(.. | select(tag == "!!str")) |= envsubst' "$(pwd)/${VM_NAME}/config.yaml"
+    yq "$(pwd)/${VM_NAME}/config.yaml"
 }
 
 # set network options
@@ -176,9 +174,12 @@ expand_cloud_image(){
       ;;
     "qcow2")
       echo "qcow2"
-      cp ${CLOUD_IMAGE_NAME} disk.qcow2
-      qemu-img resize disk.qcow2 "$DISK_SIZE"
-      sudo virt-resize --expand /dev/sda1 ${CLOUD_IMAGE_NAME} disk.qcow2
+      qemu-img create -b ${CLOUD_IMAGE_NAME} -f qcow2 \
+          -F qcow2 disk.qcow2 \
+          "$DISK_SIZE" 1> /dev/null
+      #cp ${CLOUD_IMAGE_NAME} disk.qcow2
+      #qemu-img resize disk.qcow2 "$DISK_SIZE"
+      #sudo virt-resize --expand /dev/sda1 ${CLOUD_IMAGE_NAME} disk.qcow2
       ;;
     *)
       echo "error"
@@ -228,8 +229,7 @@ generate_seed_iso(){
 }
 
 tmux_to_vm(){
-  export_metatdata
-  tmux attach-session -t "${VM_NAME}_session"
+  tmux attach-session -t "${1}_session"
 }
 
 # tail out a remote tmux window
@@ -245,11 +245,11 @@ tmux_stream(){
   done
   printf "\n"
   log " - Done!"
-  tmux_to_vm
+  tmux_to_vm "${VM_NAME}"
 }
 
 ssh_to_vm(){
-  export_metatdata
+  read_config "${1}"
   set_network
     # clear known_hosts and connect to the ip
     if [[ "$STATIC_IP" == "true" ]]; then
@@ -276,7 +276,7 @@ ssh_to_vm(){
 }
 
 vnc_tunnel(){
-  export_metatdata
+  read_config "${1}"
   ssh -o "StrictHostKeyChecking no" \
     -N -L 5001:"$HOST_ADDRESS":5900 \
     -i "/home/max/repos/Scrap-Metal/virtual-machines/$VM_NAME/$VM_USER" \
@@ -450,7 +450,7 @@ create_user_data(){
 }
 
 create-windows-vm(){
-  export_metatdata
+  read_config $1
   set_network
   select_image
   set_gpu
@@ -463,7 +463,7 @@ create-windows-vm(){
 }
 
 boot-windows-vm(){
-  export_metatdata
+  read_config $1
   set_network
   select_image
   set_gpu
@@ -474,7 +474,7 @@ boot-windows-vm(){
 }
 
 create-cloud-vm(){
-  export_metatdata
+  read_config $1
   set_network
   set_gpu
   set_vnc
@@ -489,8 +489,7 @@ create-cloud-vm(){
 }
 
 create-from-iso(){
-  ISO_FILE=$1
-  export_metatdata
+  read_config $1
   set_network
   set_gpu
   set_vnc
@@ -500,7 +499,7 @@ create-from-iso(){
 }
 
 boot-cloud-vm(){
-  export_metatdata
+  read_config $1
   set_network
   set_gpu
   set_vnc
@@ -510,7 +509,7 @@ boot-cloud-vm(){
 }
 
 boot-iso-vm(){
-  export_metatdata
+  read_config $1
   set_network
   set_gpu
   set_vnc
