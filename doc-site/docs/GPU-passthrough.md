@@ -5,6 +5,7 @@ This guide is a manual walk-though of https://github.com/small-hack/smol-gpu-pas
 - AMD devices have NOT been tested. 
 - ARM devices have NOT been tested.
 
+
 ## Enabling IOMMU
 
  - Enable IOMMU by changing the `GRUB_CMDLINE_LINUX_DEFAULT` line in your `/etc/default/grub` file to the following:
@@ -30,6 +31,7 @@ This guide is a manual walk-though of https://github.com/small-hack/smol-gpu-pas
    ```
 
  - Reboot (Required)
+
 
 ## Gathering IOMMU data
 
@@ -74,11 +76,12 @@ This guide is a manual walk-though of https://github.com/small-hack/smol-gpu-pas
    ```
 </details>
 
+
 ## Enable VFIO-PCI and disable conflicting kernel modules
 
-5. In order to pass control of the GPU to the VM we will need to hand over control of the PCI devices to VFIO. This only works though if VFIO has control of ALL items in the GPU's IOMMU group.
+In order to pass control of the GPU to the VM we will need to hand over control of the PCI devices to VFIO. This only works though if VFIO has control of ALL items in the GPU's IOMMU group.
 
-   - edit/create `/etc/initramfs-tools/modules` (Debina), or `/etc/initram-fs/modules` (Ubuntu) to include the following:
+   - edit/create `/etc/initramfs-tools/modules` (Debian), or `/etc/initram-fs/modules` (Ubuntu) to include the following:
    
       ```bash
       vfio
@@ -99,24 +102,28 @@ This guide is a manual walk-though of https://github.com/small-hack/smol-gpu-pas
       ```bash
       GRUB_CMDLINE_LINUX_DEFAULT="quiet preempt=voluntary iommu=pt amd_iommu=on intel_iommu=on vfio-pci.ids=<your IOMMU IDs go here> rd.driver.pre=vfio-pci video=efifb:off kvm.ignore_msrs=1 kvm.report_ignored_msrs=0
       ```
-      
-    - Now run `sudo update-grub` again
- 
-    - A common issue I have seen others encounter with this process is that VFIO is not given control of all devices in the GPU's IOMMU group. Most often this is due to the xhci_hcd USB module retaining control of the GPU's USB controller. 
+  
+   - Now run `sudo update-grub`, `sudo update-initramfs -u`, `sudo depmod -ae` and then reboot. (Required)
 
-         > As per the [Debian Wiki](https://wiki.debian.org/KernelModuleBlacklisting) - to disable this kernel module, or any other you can:
-         > 
-         > - Create a file `/etc/modprobe.d/<modulename>.conf` containing `blacklist <modulename>`.
-         > - Run `sudo depmod -ae` as root
-         > - Recreate your initrd with `sudo update-initramfs -u`
+
+## Disabling conflicting kernel drivers
+
+A common issue I have seen others encounter with this process is that VFIO is not given control of all devices in the GPU's IOMMU group. Most often this is due to the xhci_hcd USB module retaining control of the GPU's USB controller. 
+
+  > As per the [Debian Wiki](https://wiki.debian.org/KernelModuleBlacklisting) - to disable this kernel module, or any other you can:
+  > 
+  > - Create a file `/etc/modprobe.d/<modulename>.conf` containing `blacklist <modulename>`.
+  > - Run `sudo depmod -ae` as root
+  > - Recreate your initrd with `sudo update-initramfs -u`
  
-      So I will now edit/create `/etc/modprobe.d/xhci_hcd.conf` to contain
+So I will now edit/create `/etc/modprobe.d/xhci_hcd.conf` to contain
       
-      ```bash
-      blacklist xhci_hcd
-      ```
+  ```bash
+  blacklist xhci_hcd
+  ```
    
-6. Run `sudo update-initramfs -u`, `sudo depmod -ae` and then reboot. (Required)
+Then I will run `sudo update-initramfs -u`, `sudo depmod -ae` and reboot. (Required)
+
 
 ## Verify VFIO control over PCI Devices
 
