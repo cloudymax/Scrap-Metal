@@ -1,6 +1,9 @@
 # GPU Accelerated VMs using QEMU.
 
-A manual walk-though of https://github.com/small-hack/smol-gpu-passthrough. This Guide assumes a fresh install of Debian 12, or Ubuntnu Server.
+This guide is a manual walk-though of https://github.com/small-hack/smol-gpu-passthrough that aims to explain and de-mystify the underlying automation process. It is assumed that the reader has a fresh install of Debian 12 (no gui), or Ubuntnu Server and is using a NVIDIA GPU and an x86_64 Intel CPU. 
+
+- AMD devices have NOT been tested. 
+- ARM devices have NOT been tested.
 
 ## Enabling IOMMU
 
@@ -142,3 +145,4 @@ A manual walk-though of https://github.com/small-hack/smol-gpu-passthrough. This
    ```
 </details>
 
+At this point your host machine is ready to create GPU accelerated guest VMs.
