@@ -9,10 +9,10 @@ export DEBUG="true"
 export SQUASH="false"
 
 # Virtual Machine Configuration
-export VM_NAME="virtualbradley"
+export VM_NAME="test"
 export VM_IMAGE="jammy"
-export VM_CPUS="2"
-export VM_DISK="20G"
+export VM_CPUS="4"
+export VM_DISK="32G"
 export VM_MEM="4G"
 export VM_IP="none"
 export VM_USER="max"
@@ -22,14 +22,15 @@ export SSH_PORT="22"
 
 # temporary files
 export VM_INIT="cloud-init.yaml"
-export VM_KEY_FILE="$(pwd)$VM_USER"
+export VM_KEY_FILE="$(pwd)/$VM_USER"
 
 create_ssh_key(){
 # create a ssh key for the user and save as a file w/ prompt
-    ssh-keygen -C "$VM_USER" \
+    yes | ssh-keygen -C "$VM_USER" \
         -f "$VM_KEY_FILE" \
         -N '' \
-        -t rsa
+        -t rsa \
+	-q
 }
 
 push_ssh_key(){
@@ -38,7 +39,7 @@ push_ssh_key(){
 
 load_ssh_key(){
 # return the absolute path of the key file
-    VM_KEY_FILE=$(find "$(cd ..; pwd)" -wholename $(pwd)$VM_USER)
+    VM_KEY_FILE=$(find "$(cd ..; pwd)" -wholename $(pwd)/$VM_USER)
     VM_KEY=$(cat "$VM_KEY_FILE".pub)
 }
 
@@ -59,8 +60,8 @@ users:
     ssh-authorized-keys:
       - ${VM_KEY}
 packages:
-  - sl
   - docker.io
+  - docker-compose
 runcmd:
   - [ sed , -i , "s/#Port 22/Port ${SSH_PORT}/g" , /etc/ssh/sshd_config ]
   - [ sed , -i , "s/#PermitRootLogin prohibit-password/PermitRootLogin no/g" , /etc/ssh/sshd_config ]
@@ -69,25 +70,52 @@ EOF
 
 clear_multipass() {
 # delete hanging vms
-    multipass stop "$VM_NAME"
-    multipass delete "$VM_NAME"
-    multipass purge
-    # sudo snap restart multipass
-    sleep 2
-    #ssh-keygen -R $VM_IP
+
+    VM_LIST=$(multipass list --format json |jq '.list[].name' )
+    TARGET_PRESENT=$(echo $VM_LIST |grep -c "$VM_NAME")
+
+    if [[ "$TARGET_PRESENT" -gt "0" ]]; then
+
+	VM_IP=$(multipass list --format json \
+		|jq --arg VM_NAME "$VM_NAME" '.list[]
+		| select(.name==$VM_NAME)
+		| .ipv4[0]' -r)
+
+	multipass stop "$VM_NAME"
+        multipass delete "$VM_NAME"
+    	multipass purge
+    	# sudo snap restart multipass
+    	sleep 2
+    	ssh-keygen -R $VM_IP
+    else
+	echo "VM $VM_NAME does not exist. Skipping."
+    fi
+
 }
 
 create_vm(){
 # provision the base VM in a new tmux session
-tmux new-session -d -s "${VM_NAME}_session"
-tmux send-keys -t "${VM_NAME}_session" "multipass launch --name $VM_NAME \
---cpus $VM_CPUS \
---disk $VM_DISK \
---mem $VM_MEM \
-$VM_IMAGE \
---cloud-init $VM_INIT \
---timeout 300 \
-$VERBOSITY" ENTER
+    EXISTS=$(tmux list-sessions |grep -c "${VM_NAME}_boot_session")
+
+    if [[ "$EXISTS" -gt "0" ]]; then
+
+	echo "Session Exists."
+    else
+	tmux new-session -d -s "${VM_NAME}_boot_session"
+	sleep 3
+	EXISTS=$(tmux list-sessions |grep -c "${VM_NAME}_boot_session")
+
+	if [[ "$EXISTS" == "1" ]]; then
+            tmux send-keys -t "${VM_NAME}_boot_session" ENTER "multipass launch --name $VM_NAME \
+            --cpus $VM_CPUS \
+            --disk $VM_DISK \
+            --mem $VM_MEM \
+            $VM_IMAGE \
+            --cloud-init $VM_INIT \
+            --timeout 300 \
+            $VERBOSITY" ENTER
+	fi
+    fi
 
 #tmux attach-session -t "${VM_NAME}_session"
 }
@@ -101,54 +129,33 @@ set_vm_ip(){
   END=0
   DURATION=0
 
+
+  echo "waiting for VM's ip-address to become available..."
+
   while [ "${IP_READY}" == "0" ]
   do
 
-    VM_IP=$(multipass list --format yaml \
-      |grep -A 4 $VM_NAME \
-      |grep -A 1 ipv4 \
-      |tail -1 \
-      |awk '{print $2}')
-    
+    VM_IP=$(multipass list --format json \
+                |jq --arg VM_NAME "$VM_NAME" '.list[]
+                | select(.name==$VM_NAME)
+                | .ipv4[0]' -r)
+
     if [[ $VM_IP =~ ^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$ ]]; then
       IP_READY=1
       END=$(date +%s)
     else
       NOW=$(date +%s)
       DURATION=$(($NOW - $START))
-      echo "waiting for VM's ip-address to become available..." 
-      echo "Duration: ${DURATION}"
-      tmux_screenshot
-      sleep 1
+      #echo "Duration: ${DURATION}"
+      SCREEN=$(tmux capture-pane -t "${VM_NAME}_boot_session" -p)
+      STATUS=$(echo "$SCREEN" |tail -1)
+      echo -ne "$STATUS \033[0K\r"
     fi
   done
 
   DURATION=$(($END - $START))
   echo "VM Ready at ${VM_IP}. Ran in ${DURATION}"
-  #tmux kill-session -t "${VM_NAME}_session"
-}
-
-tmux_screenshot(){
-  SCREEN=$(tmux capture-pane -t "${VM_NAME}_session" -p)
-  echo "$SCREEN" |tail -1
-}
-
-monitor_progress(){
-  list_of_vms=$(multipass list --format yaml)
-
-  # gross regex to get this out of yaml in bash
-  # this needs to go to python badly
-  # 1. list the multipass instances out as a yaml file
-  # 2. search via grep for the vm name, 
-  # use the -3 and tail optiion to show the line underneath the ipv4 tag
-  # 3. remove the leading spaces with sed
-  # 4. remove the - symbol with sed
-
-  ip=$(multipass list --format yaml \
-        |grep -3 vsphere \
-        |tail -1 \
-        | sed 's/ //g'\
-        | sed 's/-//g')
+  tmux kill-session -t "${VM_NAME}_boot_session"
 }
 
 ssh_to_vm(){
@@ -164,14 +171,68 @@ ssh_to_vm(){
         /bin/bash
 }
 
-main(){
+watch_cloud_init(){
+    EXISTS=$(tmux list-sessions |grep -c "$VM_NAME"_logs_session)
+
+    if [[ "$EXISTS" -gt "0" ]]; then
+
+	echo "Session Exists."
+    else
+	tmux new-session -d -s "${VM_NAME}_logs_session"
+	sleep 1
+	EXISTS=$(tmux list-sessions |grep -c "$VM_NAME")
+
+	if [[ "$EXISTS" == "1" ]]; then
+            tmux send-keys -t "${VM_NAME}_logs_session" ENTER "ssh -i $VM_KEY_FILE \
+            $VM_USER@$VM_IP \
+            -o StrictHostKeyChecking=no \
+            -p $SSH_PORT \
+            -t \
+            sudo tail -f /var/log/cloud-init-output.log" ENTER
+	fi
+    fi
+
+
+  READY=0
+  echo "Watching cloud-init progress:"
+  sleep 2
+
+  while [ "${READY}" == "0" ]
+  do
+      SCREEN=$(tmux capture-pane -t "${VM_NAME}_logs_session" -p)
+      READY_CHECK=$(echo "$SCREEN" |grep -c "Cloud-init v.")
+      TEXT=$(echo "$SCREEN" |tail -1)
+
+      if [[ "$READY_CHECK" == "1" ]]; then
+        READY=1
+      else
+        echo -ne "$TEXT \033[0K\r"
+      fi
+  done
+
+  echo "Cloud-init finished."
+  tmux kill-session -t "${VM_NAME}_logs_session"
+}
+
+start(){
 # main program
     create_ssh_key
     create_cloud_init
     clear_multipass
     create_vm
     set_vm_ip
+    watch_cloud_init
     ssh_to_vm
 }
 
+stop(){
+  clear_multipass
+}
+
+connect(){
+  set_vm_ip
+  ssh_to_vm
+}
+
 "$@"
+

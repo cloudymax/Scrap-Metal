@@ -16,23 +16,15 @@ deps(){
         tmux \
         whois \
         git \
-	jq \
+	      jq \
         git-extras \
-        guestfs-tools
-    
-    # yq
-    VERSION="v4.31.1"
-    BINARY="yq_linux_amd64"
-    wget -O  $BINARY.tar.gz https://github.com/mikefarah/yq/releases/download/${VERSION}/${BINARY}.tar.gz
-    tar -xvf $BINARY.tar.gz
-    sudo mv $BINARY /usr/bin/yq
-    rm yq*
-    
-    # Cleanup apt
-    sudo apt-get autoremove -y
-    
-    # cigen 
-    docker pull deserializeme/cigen:latest
+        guestfs-tools \
+        bridge-utils
+
+        # Cleanup apt
+        sudo apt-get autoremove -y
+
+        docker pull deserializeme/cigen:latest
 }
 
 read_config(){
