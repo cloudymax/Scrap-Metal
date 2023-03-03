@@ -191,6 +191,80 @@ sudo qemu-system-x86_64 \
    -bios /usr/share/qemu/OVMF.fd
 ```
 
+## Microkernel
+
+1. Download files
+
+```bash
+# initrd
+wget -O initrd https://cloud-images.ubuntu.com/jammy/current/unpacked/jammy-server-cloudimg-amd64-initrd-generic
+
+# vmlinuz
+wget -O vmlinuz https://cloud-images.ubuntu.com/jammy/current/unpacked/jammy-server-cloudimg-amd64-vmlinuz-generic
+
+# KVM disk image
+wget -O kvm.img https://cloud-images.ubuntu.com/releases/jammy/release/ubuntu-22.04-server-cloudimg-amd64-disk-kvm.img
+```
+
+2. Prep disk image
+
+```bash
+qemu-img create -f qcow2 -F qcow2 -b `pwd`/kvm.img hdd0.img
+```
+
+3. Create a cloud-init config and image
+
+```bash
+
+/usr/bin/cat << EOF > user-data
+#cloud-config
+
+hostname: ubuntu1
+fqdn: ubuntu1.localdomain
+manage_etc_hosts: true
+
+ssh_pwauth: true
+disable_root: true
+
+users:
+  - name: ubuntu
+    home: /home/ubuntu
+    shell: /bin/bash
+    groups: sudo
+    sudo: ALL=(ALL) NOPASSWD:ALL
+    ssh-authorized-keys:
+      - `cat ~/.ssh/id_rsa.pub`
+EOF
+
+cloud-localds user-data.img user-data
+```
+
+4. Create the microvm
+
+```bash
+export KERNEL="vmlinuz"
+export INITRD="initrd"
+export HDD0="hdd0.img"
+export TAP_NUMBER="tap0"
+export SEED_ISO="user-data.img"
+   
+sudo qemu-system-x86_64 \
+   -M microvm,x-option-roms=off,pit=off,pic=off,isa-serial=off,rtc=off \
+   -enable-kvm -cpu host -m 512m -smp 2 \
+   -kernel vmlinuz -append "earlyprintk=hvc0 console=hvc0 root=/dev/vda1" \
+   -initrd initrd \
+   -nodefaults -no-user-config -nographic \
+   -chardev stdio,id=virtiocon0 \
+   -device virtio-serial-device \
+   -device virtconsole,chardev=virtiocon0 \
+   -netdev tap,id=network0,ifname=tap0,script=no,downscript=no \
+   -device virtio-net-device,netdev=network0 \
+   -device virtio-blk-device,drive=hdd0 \
+   -drive id=hdd0,file=hdd0.img,format=qcow2,if=none \
+   -device virtio-blk-device,drive=hdd1 \
+   -drive id=hdd1,file=user-data.img,format=raw,if=none \
+```
+
 ## Packages
 
 ```bash
