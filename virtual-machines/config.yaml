@@ -38,4 +38,4 @@ NETWORK:
     VNC_PORT: "0"
     TAP_DEVICE_NUMBER: "0"
     NETWORK_NUMBER: "0"
-    INTERFACE: "enp0s3"
+    INTERFACE: "enp0s2"
