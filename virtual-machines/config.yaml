@@ -1,0 +1,41 @@
+---
+IMAGE:
+  CLOUD_IMAGE_URL: "https://cloud-images.ubuntu.com/jammy/current/jammy-server-cloudimg-amd64.img"
+  CLOUD_INIT_TEMPLATE: "https://raw.githubusercontent.com/cloudymax/cigen-community-templates/main/slim-static.yaml"
+  ISO_FILE: ""
+VM:
+  VM_NAME: "vm"
+  VM_USER: "friend"
+  GITHUB_USER: "cloudymax"
+  USER: "friend"
+  DISK_NAME: "boot.img"
+  DISK_SIZE: "32G"
+  MEMORY: "4G"
+  SOCKETS: "1"
+  PHYSICAL_CORES: "2"
+  THREADS: "2"
+  VM_KEY: ""
+  VM_KEY_FILE: "friend"
+  UUID: "none"
+  MAC_ADDR: "AC:AB:13:12:5E:F8"
+  PASSWD: "password"
+GPU:
+  GPU_ACCEL: "false"
+  GPU_VENDOR: "NVIDIA"
+  GPU_PCI_ID: "02:00.0"
+NETWORK:
+  HOST:
+    HOST_ADDRESS: "192.168.50.100"
+    DNS_SERVER: "192.168.50.50"
+    IP_GATEWAY: "192.168.50.1"
+    HOST_SSH_PORT: "22"
+    HOST_INTERFACE: "enp4s0"
+    BRIDGE_NAME: "br0"
+  GUEST:
+    STATIC_IP: "true"
+    STATIC_IP_ADDRESS: "192.168.50.101"
+    VM_SSH_PORT: "1234"
+    VNC_PORT: "0"
+    TAP_DEVICE_NUMBER: "0"
+    NETWORK_NUMBER: "0"
+    INTERFACE: "enp0s3"
