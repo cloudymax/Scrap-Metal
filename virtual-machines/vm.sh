@@ -353,7 +353,7 @@ create_ubuntu_cloud_vm(){
       -usbdevice tablet \
       -vnc $HOST_ADDRESS:$VNC_PORT \
       $@" ENTER
-      tmux_stream
+      #tmux_stream
   fi
 }
 
