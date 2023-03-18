@@ -16,10 +16,10 @@ deps(){
         tmux \
         whois \
         git \
-	jq \
+        jq \
         git-extras \
         guestfs-tools \
-	bridge-utils
+        bridge-utils
 
     # yq
     VERSION="v4.31.1"
@@ -28,7 +28,7 @@ deps(){
     tar -xvf $BINARY.tar.gz
     sudo mv $BINARY /usr/bin/yq
     rm yq*
-    
+
     # Cleanup apt
     sudo apt-get autoremove -y
 
@@ -95,7 +95,7 @@ set_network(){
 
   if [[ "$STATIC_IP" == "true" ]]; then
     log " - Static IP selected."
-    
+
     BRIDGE_EXISTS=$(sudo brctl show |grep -w -c "$BRIDGE_NAME")
     if [ "$BRIDGE_EXISTS" -gt "0" ]; then
         echo "bridge exists"
@@ -109,7 +109,7 @@ set_network(){
         sudo ip addr add "$HOST_ADDRESS/24" brd + dev "$BRIDGE_NAME"
         sudo ip route add default via "$IP_GATEWAY" dev "$BRIDGE_NAME"
     fi
-  
+
     TAP_EXISTS=$(sudo brctl show |grep -c "tap$TAP_DEVICE_NUMBER")
     if [ "$TAP_EXISTS" -gt "0" ]; then
         echo "tap$TAP_DEVICE_NUMBER exists."
@@ -122,12 +122,12 @@ set_network(){
         sudo brctl show
         sudo sysctl -w net.ipv4.ip_forward=1
     fi
-  
+
     export DEVICE="-device virtio-net-pci,netdev=network$NETWORK_NUMBER,mac=$MAC_ADDR \\"
     export NETDEV="-netdev tap,id=network$NETWORK_NUMBER,ifname=tap$TAP_DEVICE_NUMBER,script=no,downscript=no \\"
-  
+
   else
-    
+
     log " - Port Forwarding selected."
     export DEVICE="-device virtio-net-pci,netdev=network$NETWORK_NUMBER \\"
     export NETDEV="-netdev user,id=network$NETWORK_NUMBER,hostfwd=tcp::"${VM_SSH_PORT}"-:"${HOST_SSH_PORT}" \\"
@@ -232,22 +232,6 @@ tmux_to_vm(){
   tmux attach-session -t "${1}_session"
 }
 
-# tail out a remote tmux window
-tmux_stream(){
-  STAGE=1
-  STAGE_DONE=$(tmux capture-pane -t "${VM_NAME}_session" -p |grep -ai -c "${VM_NAME} Login:" )
-  while [[ "$STAGE" != "1" ]]; do
-      STAGE_DONE=$(tmux capture-pane -t "${VM_NAME}_session" -p |grep -ai -c "${VM_NAME} Login:" )
-      printf '\r%s' "  " "$(tmux capture-pane -t "${VM_NAME}_session" -p |tail -2 |head -1)"
-      if [[ $STAGE_DONE == "1" ]]; then
-        let "++$STAGE"
-      fi
-  done
-  printf "\n"
-  log " - Done!"
-  tmux_to_vm "${VM_NAME}"
-}
-
 ssh_to_vm(){
   read_config "${1}"
   set_network
@@ -260,7 +244,7 @@ ssh_to_vm(){
       ssh -o "StrictHostKeyChecking no" \
         -X \
         -i "$VM_NAME"/"$VM_USER" \
-        "$VM_USER"@"$STATIC_IP_ADDRESS"
+        "${VM_NAME}admin"@"$STATIC_IP_ADDRESS" "${2}"
 
     else
       # clear known_hosts and connect to the port on the host
@@ -271,8 +255,28 @@ ssh_to_vm(){
       ssh -o "StrictHostKeyChecking no" \
         -X \
         -i "$VM_NAME"/"$VM_USER" \
-        -p"${VM_SSH_PORT}" "${VM_USER}"@"${HOST_ADDRESS}"
+        -p"${VM_SSH_PORT}" "${VM_NAME}admin"@"${HOST_ADDRESS}" "${2}"
     fi
+}
+
+watch_progress(){
+  READY=0
+  echo -e "\033[92mWatching cloud-init progress: \033[00m"
+
+  while [ "${READY}" == "0" ]
+  do
+      SCREEN=$(tmux capture-pane -t "${VM_NAME}_session" -p)
+      READY_CHECK=$(echo "$SCREEN" |grep -c "Cloud-init v.")
+      TEXT=$(echo "$SCREEN" |tail -1)
+
+      if [[ "$READY_CHECK" == "1" ]]; then
+        READY=1
+      else
+        echo -e "\033[92m>\033[00m $TEXT"
+        echo -e "\033[2A"
+      fi
+  done
+  echo -e "\n"
 }
 
 vnc_tunnel(){
@@ -304,7 +308,7 @@ create_vm_from_iso(){
     -usbdevice tablet \
     -vnc $HOST_ADDRESS:$VNC_PORT \
     $@" ENTER
-    tmux_stream
+    watch_progress
 }
 
 boot_vm_from_iso(){
@@ -328,7 +332,7 @@ boot_vm_from_iso(){
     -usbdevice tablet \
     -vnc $HOST_ADDRESS:$VNC_PORT \
     $@" ENTER
-    tmux_stream
+    watch_progress
 }
 
 # start the cloud-init backed VM
@@ -353,7 +357,7 @@ create_ubuntu_cloud_vm(){
       -usbdevice tablet \
       -vnc $HOST_ADDRESS:$VNC_PORT \
       $@" ENTER
-      #tmux_stream
+      watch_progress
   fi
 }
 
@@ -377,7 +381,7 @@ boot_ubuntu_cloud_vm(){
       -usbdevice tablet \
       -vnc $HOST_ADDRESS:$VNC_PORT \
       $@" ENTER
-      tmux_stream
+      watch_progress
   fi
 }
 
@@ -446,7 +450,6 @@ create_user_data(){
     --template "/cloud-init-template.yaml" \
     --extra-vars "VM_KEY=$VM_KEY,STATIC_IP_ADDRESS=$STATIC_IP_ADDRESS,GATEWAY_IP=$IP_GATEWAY,DNS_SERVER_IP=$DNS_SERVER,INTERFACE=$INTERFACE"
   cd $VM_NAME
-
 }
 
 create-windows-vm(){
@@ -459,7 +462,6 @@ create-windows-vm(){
   create_virtual_disk
   qemu-img create -f qcow2 hdd2.img 256G
   create_windows_vm
-  tmux_to_vm
 }
 
 boot-windows-vm(){
@@ -470,7 +472,6 @@ boot-windows-vm(){
   set_vnc
   create_dir
   boot_windows_vm
-  tmux_to_vm
 }
 
 create-cloud-vm(){
@@ -505,7 +506,6 @@ boot-cloud-vm(){
   set_vnc
   create_dir
   boot_ubuntu_cloud_vm
-  tmux_to_vm
 }
 
 boot-iso-vm(){
@@ -515,7 +515,6 @@ boot-iso-vm(){
   set_vnc
   create_dir
   boot_vm_from_iso
-  tmux_to_vm
 }
 
 "$@"
