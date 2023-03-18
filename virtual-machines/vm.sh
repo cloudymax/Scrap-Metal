@@ -261,7 +261,7 @@ ssh_to_vm(){
 
 watch_progress(){
   READY=0
-  echo -e "\033[92mWatching cloud-init progress: \033[00m"
+  log "Watching progress: "
 
   while [ "${READY}" == "0" ]
   do
@@ -272,11 +272,10 @@ watch_progress(){
       if [[ "$READY_CHECK" == "1" ]]; then
         READY=1
       else
-        echo -e "\033[92m>\033[00m $TEXT"
-        echo -e "\033[2A"
+        echo -ne "$TEXT \r"
       fi
   done
-  echo -e "\n"
+  log " - Cloud-init complete."
 }
 
 vnc_tunnel(){
