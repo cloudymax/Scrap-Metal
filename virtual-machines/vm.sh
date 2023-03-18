@@ -266,7 +266,7 @@ watch_progress(){
   while [ "${READY}" == "0" ]
   do
       SCREEN=$(tmux capture-pane -t "${VM_NAME}_session" -p)
-      READY_CHECK=$(echo "$SCREEN" |grep -c "Cloud-init v.")
+      READY_CHECK=$(echo "$SCREEN" |grep "Cloud-init" |grep -c "finished")
       TEXT=$(echo "$SCREEN" |tail -1)
 
       if [[ "$READY_CHECK" == "1" ]]; then
