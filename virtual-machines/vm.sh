@@ -1,12 +1,12 @@
 #!/bin/bash
 
+# Generic logging method to rerutn a timestamped string
 log() {
     echo >&2 -e "[$(date +"%Y-%m-%d %H:%M:%S")] ${1-}"
 }
 
+# Install required packages to run the vm script
 deps(){
-
-    # Install required Apt Packages
     sudo apt-get install -y qemu-kvm \
         bridge-utils \
         virtinst\
@@ -35,6 +35,7 @@ deps(){
     docker pull deserializeme/cigen:latest
 }
 
+# Load a virtual machines config.yaml file into memory
 read_config(){
   # VM OPTIONS
   export VM_NAME="${1}"
@@ -82,13 +83,6 @@ read_config(){
   export INTERFACE=$(cat ${VM_NAME}/config.yaml | yq '.NETWORK.GUEST.INTERFACE')
 }
 
-write_config(){
-    export_metatdata
-    cp config.yaml "${VM_NAME}"/config.yaml
-    yq e -i '(.. | select(tag == "!!str")) |= envsubst' "$(pwd)/${VM_NAME}/config.yaml"
-    yq "$(pwd)/${VM_NAME}/config.yaml"
-}
-
 # set network options
 set_network(){
   log "📞 Setting networking options."
@@ -96,7 +90,11 @@ set_network(){
   if [[ "$STATIC_IP" == "true" ]]; then
     log " - Static IP selected."
 
+    # When an VM uses a Static IP, we will first need to verify the existance of, or create
+    # a bridge device to host the Tap interface. If a bride i not found, one is created and
+    # given control of the host machines IP address and Network Interface.
     BRIDGE_EXISTS=$(sudo brctl show |grep -w -c "$BRIDGE_NAME")
+    
     if [ "$BRIDGE_EXISTS" -gt "0" ]; then
         echo "bridge exists"
     else
@@ -110,6 +108,8 @@ set_network(){
         sudo ip route add default via "$IP_GATEWAY" dev "$BRIDGE_NAME"
     fi
 
+    # Creates a new Tap interface if one matching the specified TAP_DEVICE_NUMBER 
+    # does not yet exist.
     TAP_EXISTS=$(sudo brctl show |grep -c "tap$TAP_DEVICE_NUMBER")
     if [ "$TAP_EXISTS" -gt "0" ]; then
         echo "tap$TAP_DEVICE_NUMBER exists."
@@ -122,12 +122,12 @@ set_network(){
         sudo brctl show
         sudo sysctl -w net.ipv4.ip_forward=1
     fi
-
+    # Export the network options for the qemu command 
     export DEVICE="-device virtio-net-pci,netdev=network$NETWORK_NUMBER,mac=$MAC_ADDR \\"
     export NETDEV="-netdev tap,id=network$NETWORK_NUMBER,ifname=tap$TAP_DEVICE_NUMBER,script=no,downscript=no \\"
 
   else
-
+    # Export the network options for the qemu command 
     log " - Port Forwarding selected."
     export DEVICE="-device virtio-net-pci,netdev=network$NETWORK_NUMBER \\"
     export NETDEV="-netdev user,id=network$NETWORK_NUMBER,hostfwd=tcp::"${VM_SSH_PORT}"-:"${HOST_SSH_PORT}" \\"
@@ -135,6 +135,8 @@ set_network(){
 }
 
 # set gpu acceleration options
+# When GPU_ACCEL is enabled, create a `-device` config for QEMU
+# using the detected GPU_PCI_ID.
 set_gpu(){
   log "j🖥 Set graphics options based on gpu presence."
   if [[ "$GPU_ACCEL" == "false" ]]; then
@@ -149,6 +151,7 @@ set_gpu(){
 }
 
 # set VNC options
+# configures the built-in qemu VNC server.
 set_vnc(){
   export KEYBOARD="en-us"
   export VNC_OPTIONS="-vnc $HOST_ADDRESS:$VNC_PORT -k $KEYBOARD"
@@ -159,7 +162,7 @@ download_cloud_image(){
     wget -c -O "$CLOUD_IMAGE_NAME" "$CLOUD_IMAGE_URL" -q --show-progress
 }
 
-# Create and expanded image
+# Expand the size of the disk image 
 expand_cloud_image(){
   log "📈 Expanding image"
 
@@ -177,9 +180,6 @@ expand_cloud_image(){
       qemu-img create -b ${CLOUD_IMAGE_NAME} -f qcow2 \
           -F qcow2 disk.qcow2 \
           "$DISK_SIZE" 1> /dev/null
-      #cp ${CLOUD_IMAGE_NAME} disk.qcow2
-      #qemu-img resize disk.qcow2 "$DISK_SIZE"
-      #sudo virt-resize --expand /dev/sda1 ${CLOUD_IMAGE_NAME} disk.qcow2
       ;;
     *)
       echo "error"
@@ -190,7 +190,7 @@ expand_cloud_image(){
 }
 
 
-# create an ssh keyi
+# create an ssh key
 create_ssh_key(){
   log "🔐 Create an SSH key for the VM admin user"
 
@@ -221,7 +221,7 @@ create_virtual_disk(){
   log " - Done!"
 }
 
-# Generate an ISO image
+# Generate an ISO image containing the coud-init config
 generate_seed_iso(){
   log "🌱 Generating seed iso containing user-data"
   cloud-localds seed.img user-data.yaml
@@ -232,6 +232,7 @@ tmux_to_vm(){
   tmux attach-session -t "${1}_session"
 }
 
+# Attach to the specified VM_NAME over ssh using the amdin account
 ssh_to_vm(){
   read_config "${1}"
   set_network
@@ -259,6 +260,7 @@ ssh_to_vm(){
     fi
 }
 
+# Capture and deisplay the last line of a tmux console
 watch_progress(){
   READY=0
   log "Watching progress: "
