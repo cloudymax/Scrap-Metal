@@ -1,2 +1,0 @@
-Debian="https://cloud.debian.org/images/cloud/bookworm/daily/latest/debian-12-generic-amd64-daily.qcow2"
-Ubuntu="https://cloud-images.ubuntu.com/jammy/current/jammy-server-cloudimg-amd64.img"
