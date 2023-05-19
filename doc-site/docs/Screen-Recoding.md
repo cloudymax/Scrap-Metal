@@ -76,6 +76,7 @@ For screen recording to work we need to ensure that we ensure certain capabiliti
 ## GPU
 
 https://git.dec05eba.com/gpu-screen-recorder/about/
+git clone https://repo.dec05eba.com/gpu-screen-recorder
 
 ```bash
 #!/bin/bash
