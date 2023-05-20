@@ -79,6 +79,26 @@ https://git.dec05eba.com/gpu-screen-recorder/about/
 git clone https://repo.dec05eba.com/gpu-screen-recorder
 
 ```bash
+sudo apt-get install -y libglvnd-dev \
+    ffmpeg \
+    libx11-dev \
+    libxcomposite-dev \
+    libxrandr-dev \
+    libxfixes-dev \
+    libpulse-dev \
+    libnvidia-compute-525-server \
+    libnvidia-encode-525 \
+    libva-dev \
+    libdrm-dev \
+    libcap-dev \
+    libavformat-dev \
+    libavfilter-dev \
+git clone https://repo.dec05eba.com/gpu-screen-recorder
+cd gpu-screen-recorder
+sudo ./install.sh
+```
+
+```bash
 #!/bin/bash
 APP_NAME="OpenGl"
 FRAME_RATE="60"
