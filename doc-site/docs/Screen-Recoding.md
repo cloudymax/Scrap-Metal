@@ -100,7 +100,7 @@ sudo ./install.sh
 
 ```bash
 #!/bin/bash
-APP_NAME="OpenGl"
+APP_NAME="Desktop"
 FRAME_RATE="60"
 FILE_FORMAT="mp4"
 SCREEN_SIZE="1920x1080"
@@ -112,7 +112,7 @@ OUTPUT_FILE="my-video"
 # Gets the ID of a X-App and converts it from
 # hexadecimal to decimal form.
 HEX_ID=$(xwininfo -root -tree \
-|grep -ai $APP_NAME \
+|grep $APP_NAME \
 |awk '{print $1}')
 WINDOW_ID=$(printf %i "$HEX_ID")
 
