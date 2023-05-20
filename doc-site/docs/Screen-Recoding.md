@@ -86,7 +86,7 @@ sudo apt-get install -y libglvnd-dev \
     libxrandr-dev \
     libxfixes-dev \
     libpulse-dev \
-    libnvidia-compute-525-server \
+    libnvidia-compute-525 \
     libnvidia-encode-525 \
     libva-dev \
     libdrm-dev \
