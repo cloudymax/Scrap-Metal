@@ -57,11 +57,12 @@ For screen recording to work we need to ensure that we ensure certain capabiliti
 ## CPU
 
 ```bash
-./ffmpeg -r 30 \
+export DISPLAY=:0
+ffmpeg -r 24 \
 -f x11grab \
 -draw_mouse 0 \
--s 1280x800 \
--i :99 \
+-s 1920x1080 \
+-i :0 \
 -c:v libvpx \
 -quality realtime \
 -cpu-used 0 \
@@ -95,6 +96,7 @@ sudo apt-get update && sudo apt-get install -y libglvnd-dev \
     libavfilter-dev \
     gcc \
     g++ \
+    xdotool \
 git clone https://repo.dec05eba.com/gpu-screen-recorder
 cd gpu-screen-recorder
 sudo ./install.sh
