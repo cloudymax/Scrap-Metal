@@ -104,21 +104,21 @@ sudo ./install.sh
 
 ```bash
 #!/bin/bash
-APP_NAME="Desktop"
-FRAME_RATE="60"
-FILE_FORMAT="mp4"
-SCREEN_SIZE="1920x1080"
-AUDIO_DEVICE=""
-QUALITY="ultra"
-CODEC="auto"
-OUTPUT_FILE="my-video"
+export APP_NAME="OpenGL"
+export FRAME_RATE="60"
+export FILE_FORMAT="mp4"
+export SCREEN_SIZE="1920x1080"
+export AUDIO_DEVICE=""
+export QUALITY="ultra"
+export CODEC="auto"
+export OUTPUT_FILE="my-video"
 
 # Gets the ID of a X-App and converts it from
 # hexadecimal to decimal form.
-HEX_ID=$(xwininfo -root -tree \
+export HEX_ID=$(xwininfo -root -tree \
 |grep $APP_NAME \
 |awk '{print $1}')
-WINDOW_ID=$(printf %i "$HEX_ID")
+export WINDOW_ID=$(printf %i "$HEX_ID")
 
 # Starts the screen recording using the -w flag to
 # record a window.
@@ -129,6 +129,6 @@ gpu-screen-recorder -w $WINDOW_ID \
 -a "$(pactl get-default-sink).monitor" \
 -q $QUALITY \
 -k $CODEC \
--o "$OUTPUT_FILE.$FILE_FORMAT"
+-o "$OUTPUT_FILE.mp4"
 # -s "$SCREEN_SIZE" \
 ```
