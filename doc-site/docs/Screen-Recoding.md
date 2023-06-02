@@ -1,7 +1,7 @@
 # Screen Recording Notes
 
 
-## Pre-reqs
+## Pre-reqs for Bare-Metal and Virtual Machines
 
 For screen recording to work we need to ensure that we ensure certain capabilities:
 
@@ -13,13 +13,20 @@ For screen recording to work we need to ensure that we ensure certain capabiliti
 
 2. Enable Auto-Login
 
-    Similar to above. RDP will only work when a X session is already started and a user already logged in. Enable auto-login to avoid needing to use VNC to init the session.
+    Similar to above. RDP and other applications will only work when a X session is already started and a user already logged in. Enable auto-login to avoid needing to use VNC to init the session.
 
-    - Also handled by [/etc/gdm3/daemon.conf](https://github.com/cloudymax/Scrap-Metal/blob/main/virtual-machines/qemu/configs/gdm3.custom)
+    - On Debain systems, the file is called [/etc/gdm3/daemon.conf](https://github.com/cloudymax/Scrap-Metal/blob/main/virtual-machines/qemu/configs/gdm3.custom)
+    - On ubuntu systems, the file is called [/etc/gdm3/custom.conf](https://github.com/cloudymax/Scrap-Metal/blob/main/virtual-machines/qemu/configs/gdm3.custom)
 
 3. Enable Xorg/X11:
 
-    Aside form disabling Wayland, we need to enable Xorg/X11 bu creating `/etx/X11/xorg.conf` and specifying the GPU BusID, a screen, and a monitor.
+    Aside from disabling Wayland, we need to explicitly enable Xorg/X11 by creating a `/etx/X11/xorg.conf` configuration file. This file tells the X11 system how to find and use various display, input, and graphical devices. Importantly, we can use this file to create virtual displays for headless systems to use as output devices. 
+    
+    X11 has a HUGE number of options and is nearly infinotely customisable, but also very fragile. Due to the sheer size, scope and age of X11 finding the correct documentation for your hardware, drivers, monitors, operating system etc.. can be very difficult. For that reason I reccommend the following steps for setting it up on your system.
+    
+    - Install the GPU drivers and dont do anything else. For Bare-Metal systems with an attached physical monitor Debian12 and Ubuntu 22.04+ can often get everythign working on their own after the driver is installed.
+    
+    - If the above failed to get uour screen working 
 
     - [Example Xorg.conf](https://github.com/cloudymax/Scrap-Metal/blob/main/virtual-machines/qemu/configs/xorg.conf)
 
@@ -54,81 +61,62 @@ For screen recording to work we need to ensure that we ensure certain capabiliti
     . /etc/default/locale
     ```
 
-## CPU
+## Compile ffmpeg with nvidia nvenc support
+
+```bash
+git clone https://git.videolan.org/git/ffmpeg/nv-codec-headers.git
+cd nv-codec-headers && sudo make install 
+cd..
+
+git clone https://git.ffmpeg.org/ffmpeg.git ffmpeg/
+
+sudo apt-get install -y 
+    build-essential \
+    yasm \
+    cmake \
+    libtool \
+    libc6 \
+    libc6-dev \
+    unzip \
+    wget \
+    libnuma1 \
+    libnuma-dev
+
+cd ffmpeg
+
+./configure --enable-nonfree \
+    --enable-cuda-nvcc \
+    --enable-libnpp \
+    --extra-cflags=-I/usr/local/cuda/include \
+    --extra-ldflags=-L/usr/local/cuda/lib64 \
+    --disable-static \
+    --enable-shared
+
+make -j 8
+
+sudo make install
+```
+
+Record screen with ffmpeg
 
 ```bash
 export DISPLAY=:0
-ffmpeg -r 24 \
--f x11grab \
--draw_mouse 0 \
--s 1920x1080 \
--i :0 \
--c:v libvpx \
--quality realtime \
--cpu-used 0 \
--b:v 384k \
--qmin 10 \
--qmax 42 \
--maxrate 384k \
--bufsize 1000k \
--an screen.webm
+export FRAME_RATE=60
+export SHOW_MOUSE=1
+export RESOLUTION=1920x1080
+export CODEC=h264_nvenc
+export OUTPUT_FILE=recording.mp4
+
+ffmpeg -r $FRAME_RATE \
+    -f x11grab \
+    -draw_mouse $SHOW_MOUSE \
+    -s $RESOLUTION \
+    -i $DISPLAY \
+    -c:v $CODEC \
+    -b:v 384k \
+    -qmin 0 \
+    -qmax 20 \
+    $OUTPUT_FILE
 ```
 
-## GPU
 
-https://git.dec05eba.com/gpu-screen-recorder/about/
-git clone https://repo.dec05eba.com/gpu-screen-recorder
-
-```bash
-sudo apt-get update && sudo apt-get install -y libglvnd-dev \
-    ffmpeg \
-    libx11-dev \
-    libxcomposite-dev \
-    libxrandr-dev \
-    libxfixes-dev \
-    libpulse-dev \
-    libnvidia-compute-525 \
-    libnvidia-encode-525 \
-    libva-dev \
-    libdrm-dev \
-    libcap-dev \
-    libavformat-dev \
-    libavfilter-dev \
-    gcc \
-    g++ \
-    xdotool \
-git clone https://repo.dec05eba.com/gpu-screen-recorder
-cd gpu-screen-recorder
-sudo ./install.sh
-```
-
-```bash
-#!/bin/bash
-export APP_NAME="OpenGL"
-export FRAME_RATE="60"
-export FILE_FORMAT="mp4"
-export SCREEN_SIZE="1920x1080"
-export AUDIO_DEVICE=""
-export QUALITY="ultra"
-export CODEC="auto"
-export OUTPUT_FILE="my-video"
-
-# Gets the ID of a X-App and converts it from
-# hexadecimal to decimal form.
-export HEX_ID=$(xwininfo -root -tree \
-|grep $APP_NAME \
-|awk '{print $1}')
-export WINDOW_ID=$(printf %i "$HEX_ID")
-
-# Starts the screen recording using the -w flag to
-# record a window.
-# SCREEN_SIZE is not used when -w is specified.
-gpu-screen-recorder -w $WINDOW_ID \
--c $FILE_FORMAT \
--f $FRAME_RATE \
--a "$(pactl get-default-sink).monitor" \
--q $QUALITY \
--k $CODEC \
--o "$OUTPUT_FILE.mp4"
-# -s "$SCREEN_SIZE" \
-```
