@@ -99,6 +99,8 @@ sudo make install
 
 Record screen with ffmpeg
 
+For more options see: https://docs.nvidia.com/video-technologies/video-codec-sdk/11.1/ffmpeg-with-nvidia-gpu/index.html
+
 ```bash
 export DISPLAY=:0
 export FRAME_RATE=60
