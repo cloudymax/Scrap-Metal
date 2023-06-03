@@ -108,6 +108,8 @@ export SHOW_MOUSE=1
 export RESOLUTION=1920x1080
 export CODEC=h264_nvenc
 export OUTPUT_FILE=recording.mp4
+     
+ffmpeg -r $FRAME_RATE -f x11grab -draw_mouse $SHOW_MOUSE -s $RESOLUTION -i $DISPLAY -c:v $CODEC -preset 8  $OUTPUT_FILE
 
 ffmpeg -r $FRAME_RATE \
     -f x11grab \
@@ -115,9 +117,7 @@ ffmpeg -r $FRAME_RATE \
     -s $RESOLUTION \
     -i $DISPLAY \
     -c:v $CODEC \
-    -b:v 384k \
-    -qmin 0 \
-    -qmax 20 \
+    -preset 8 \
     $OUTPUT_FILE
 ```
 
