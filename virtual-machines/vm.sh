@@ -352,7 +352,9 @@ create_ubuntu_cloud_vm(){
       $PCI_GPU
       $NETDEV
       $DEVICE
-      -drive if=virtio,format=qcow2,file=disk.qcow2,index=1,media=disk \
+      -object iothread,id=io1 \
+      -device virtio-blk-pci,drive=disk0,iothread=io1 \
+      -drive if=none,id=disk0,cache=none,format=qcow2,aio=threads,file=disk.qcow2 \
       -drive if=virtio,format=raw,file=seed.img,index=0,media=disk  \
       -bios /usr/share/ovmf/OVMF.fd \
       -usbdevice tablet \
@@ -377,7 +379,9 @@ boot_ubuntu_cloud_vm(){
       $PCI_GPU
       $NETDEV
       $DEVICE
-      -drive if=virtio,format=qcow2,file=disk.qcow2 \
+      -object iothread,id=io1 \
+      -device virtio-blk-pci,drive=disk0,iothread=io1 \
+      -drive if=none,id=disk0,cache=none,format=qcow2,aio=threads,file=disk.qcow2 \
       -bios /usr/share/ovmf/OVMF.fd \
       -usbdevice tablet \
       -vnc $HOST_ADDRESS:$VNC_PORT \
