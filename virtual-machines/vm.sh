@@ -44,6 +44,7 @@ read_config(){
   export USER=$(cat ${VM_NAME}/config.yaml | yq '.VM.USER')
   export DISK_NAME=$(cat ${VM_NAME}/config.yaml | yq '.VM.DISK_NAME')
   export DISK_SIZE=$(cat ${VM_NAME}/config.yaml | yq '.VM.DISK_SIZE')
+  export DISK_ENCRYPTION=$(cat ${VM_NAME}/config.yaml | yq '.VM.DISK_ENCRYPTION')
   export MEMORY=$(cat ${VM_NAME}/config.yaml | yq '.VM.MEMORY')
   export SOCKETS=$(cat ${VM_NAME}/config.yaml | yq '.VM.SOCKETS')
   export PHYSICAL_CORES=$(cat ${VM_NAME}/config.yaml | yq '.VM.PHYSICAL_CORES')
@@ -57,12 +58,15 @@ read_config(){
   # GPU Options
   export GPU_ACCEL=$(cat ${VM_NAME}/config.yaml | yq '.GPU.GPU_ACCEL')
   export GPU_VENDOR=$(cat ${VM_NAME}/config.yaml | yq '.GPU.GPU_VENDOR')
-  export GPU_PCI_ID=$(lspci |grep VGA |grep -ai $GPU_VENDOR |awk '{print $1}')
+  export GPU_TESLA=$(cat ${VM_NAME}/config.yaml | yq '.GPU.GPU_TESLA')
+  export GPU_PCI_ID=$(cat ${VM_NAME}/config.yaml | yq '.GPU.GPU_PCI_ID')
 
   # IMAGE OPTIONS
   export CLOUD_IMAGE_URL=$(cat ${VM_NAME}/config.yaml | yq '.IMAGE.CLOUD_IMAGE_URL')
-  export CLOUD_IMAGE_NAME=$(basename "$CLOUD_IMAGE_URL")
+  export CLOUD_IMAGE_NAME=$(basename -- "$CLOUD_IMAGE_URL")
   export CLOUD_INIT_TEMPLATE=$(cat ${VM_NAME}/config.yaml | yq '.IMAGE.CLOUD_INIT_TEMPLATE')
+  export LOCAL_TEMPLATE$(cat ${VM_NAME}/config.yaml | yq '.IMAGE.LOCAL_TEMPLATE')
+  export LOCAL_TEMPLATE_PATH=$(cat ${VM_NAME}/config.yaml | yq '.IMAGE.LOCAL_TEMPLATE_PATH')
   export ISO_FILE=$(cat ${VM_NAME}/config.yaml | yq '.IMAGE.ISO_FILE')
 
   # Host Networking options
@@ -145,7 +149,15 @@ set_gpu(){
     log " - GPU not attached"
   else
     export VGA_OPT="-vga virtio -serial stdio -parallel none \\"
-    export PCI_GPU="-device vfio-pci,host=$GPU_PCI_ID,multifunction=on,x-vga=on \\"
+    
+    if [[ "$GPU_TESLA" == "false" ]]; then
+        export PCI_GPU="-device vfio-pci,host=${GPU_PCI_ID},multifunction=on,x-vga=on \\"
+    fi
+     
+    if [[ "$GPU_TESLA" == "true" ]]; then
+        export PCI_GPU="-device vfio-pci,host=${GPU_PCI_ID},multifunction=on \\"
+    fi
+    
     log " - GPU attached"
   fi
 }
@@ -166,7 +178,9 @@ download_cloud_image(){
 expand_cloud_image(){
   log "📈 Expanding image"
 
-  export CLOUD_IMAGE_FILE_TYPE=$(echo "${CLOUD_IMAGE_NAME#*.}")
+
+  export BASENAME=$(basename -- "$CLOUD_IMAGE_URL")
+  export CLOUD_IMAGE_FILE_TYPE="${BASENAME##*.}"
 
   case $CLOUD_IMAGE_FILE_TYPE in
     "img")
@@ -309,7 +323,7 @@ create_vm_from_iso(){
     -usbdevice tablet \
     -vnc $HOST_ADDRESS:$VNC_PORT \
     $@" ENTER
-    watch_progress
+    tmux_to_vm
 }
 
 boot_vm_from_iso(){
@@ -333,7 +347,7 @@ boot_vm_from_iso(){
     -usbdevice tablet \
     -vnc $HOST_ADDRESS:$VNC_PORT \
     $@" ENTER
-    watch_progress
+    tmux_to_vm $VM_NAME
 }
 
 # start the cloud-init backed VM
@@ -343,24 +357,24 @@ create_ubuntu_cloud_vm(){
     echo "session exists"
   else
     tmux new-session -d -s "${VM_NAME}_session"
-    tmux send-keys -t "${VM_NAME}_session" "sudo qemu-system-x86_64  \
+    tmux send-keys -t "${VM_NAME}_session" "sudo qemu-system-x86_64 \
       -machine accel=kvm,type=q35 \
-      -cpu host,kvm="off",hv_vendor_id="null" \
+      -cpu host \
       -smp $SMP,sockets="$SOCKETS",cores="$PHYSICAL_CORES",threads="$THREADS",maxcpus=$SMP \
       -m "$MEMORY" \
       $VGA_OPT
       $PCI_GPU
       $NETDEV
       $DEVICE
-      -object iothread,id=io1 \
-      -device virtio-blk-pci,drive=disk0,iothread=io1 \
-      -drive if=none,id=disk0,cache=none,format=qcow2,aio=threads,file=disk.qcow2 \
-      -drive if=virtio,format=raw,file=seed.img,index=0,media=disk  \
+      -object iothread,id=io${VNC_PORT} \
+      -device virtio-blk-pci,drive=disk${VNC_PORT},iothread=io${VNC_PORT} \
+      -drive if=none,id=disk${VNC_PORT},cache=none,format=qcow2,aio=threads,file=disk.qcow2 \
+      -drive if=virtio,format=raw,file=seed.img,index=0,media=disk \
       -bios /usr/share/ovmf/OVMF.fd \
       -usbdevice tablet \
       -vnc $HOST_ADDRESS:$VNC_PORT \
       $@" ENTER
-      watch_progress
+      #watch_progress
   fi
 }
 
@@ -370,23 +384,23 @@ boot_ubuntu_cloud_vm(){
     echo "session exists"
   else
     tmux new-session -d -s "${VM_NAME}_session"
-    tmux send-keys -t "${VM_NAME}_session" "sudo qemu-system-x86_64  \
+    tmux send-keys -t "${VM_NAME}_session" "sudo qemu-system-x86_64 \
       -machine accel=kvm,type=q35 \
-      -cpu host,kvm="off",hv_vendor_id=null  \
+      -cpu host \
       -smp $SMP,sockets="$SOCKETS",cores="$PHYSICAL_CORES",threads="$THREADS",maxcpus=$SMP \
       -m "$MEMORY" \
       $VGA_OPT
       $PCI_GPU
       $NETDEV
       $DEVICE
-      -object iothread,id=io1 \
-      -device virtio-blk-pci,drive=disk0,iothread=io1 \
-      -drive if=none,id=disk0,cache=none,format=qcow2,aio=threads,file=disk.qcow2 \
+      -object iothread,id=io${VNC_PORT} \
+      -device virtio-blk-pci,drive=disk${VNC_PORT},iothread=io${VNC_PORT} \
+      -drive if=none,id=disk${VNC_PORT},cache=none,format=qcow2,aio=threads,file=disk.qcow2 \
       -bios /usr/share/ovmf/OVMF.fd \
       -usbdevice tablet \
       -vnc $HOST_ADDRESS:$VNC_PORT \
       $@" ENTER
-      watch_progress
+      ssh_to_vm ${VM_NAME}
   fi
 }
 
@@ -411,6 +425,7 @@ create_windows_vm(){
     $DEVICE
     -vnc $HOST_ADDRESS:$VNC_PORT \
     $@" ENTER
+    tmux_to_vm ${VM_NAME}
 }
 
 boot_windows_vm(){
@@ -436,6 +451,7 @@ boot_windows_vm(){
     $DEVICE
     -vnc $HOST_ADDRESS:$VNC_PORT \
     $@" ENTER
+    tmux_to_vm ${VM_NAME}
 }
 
 create_user_data(){
