@@ -1,6 +1,6 @@
 ----
 Debian:
-  12: "https://cloud.debian.org/images/cloud/bookworm/daily/latest/debian-12-generic-amd64-daily.qcow2"
+  12: "https://laotzu.ftp.acc.umu.se/images/cloud/bookworm/latest/debian-12-generic-amd64.qcow2"
 Ubuntu:
   focal: "https://cloud-images.ubuntu.com/focal/current/focal-server-cloudimg-amd64.img"
   jammy: "https://cloud-images.ubuntu.com/jammy/current/jammy-server-cloudimg-amd64.img"
