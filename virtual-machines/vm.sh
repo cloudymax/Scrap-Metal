@@ -151,11 +151,11 @@ set_gpu(){
     export VGA_OPT="-vga virtio -serial stdio -parallel none \\"
     
     if [[ "$GPU_TESLA" == "false" ]]; then
-        export PCI_GPU="-device vfio-pci,host=${GPU_PCI_ID},multifunction=on,x-vga=on \\"
+        export PCI_GPU="-device vfio-pci,host=${GPU_PCI_ID},multifunction=on,x-vga=on \\ "
     fi
      
     if [[ "$GPU_TESLA" == "true" ]]; then
-        export PCI_GPU="-device vfio-pci,host=${GPU_PCI_ID},multifunction=on \\"
+        export PCI_GPU="-device vfio-pci,host=${GPU_PCI_ID},multifunction=on -fw_cfg name=opt/ovmf/X-PciMmio64Mb,string=65536 \\ "
     fi
     
     log " - GPU attached"
