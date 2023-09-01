@@ -148,14 +148,14 @@ set_gpu(){
     export PCI_GPU="\\"
     log " - GPU not attached"
   else
-    export VGA_OPT="-vga virtio -serial stdio -parallel none \\"
+    export VGA_OPT="-vga none -serial stdio -parallel none \\"
     
     if [[ "$GPU_TESLA" == "false" ]]; then
         export PCI_GPU="-device vfio-pci,host=${GPU_PCI_ID},multifunction=on,x-vga=on \\"
     fi
      
     if [[ "$GPU_TESLA" == "true" ]]; then
-        export PCI_GPU="-device vfio-pci,host=${GPU_PCI_ID},multifunction=on \\"
+        export PCI_GPU="-device vfio-pci,host=${GPU_PCI_ID},multifunction=on -fw_cfg name=opt/ovmf/X-PciMmio64Mb,string=65536 \\"
     fi
     
     log " - GPU attached"
@@ -414,7 +414,7 @@ create_windows_vm(){
     -smp $SMP,sockets="$SOCKETS",cores="$PHYSICAL_CORES",threads="$THREADS",maxcpus=$SMP \
     -m "$MEMORY" \
     -drive id=disk0,if=virtio,cache=none,format=qcow2,file=hdd.img \
-    -drive file=Win10_22H2_EnglishInternational_x64.iso,index=1,media=cdrom \
+    -drive file=Win10.iso,index=1,media=cdrom \
     -drive file=virtio-win-0.1.215.iso,index=2,media=cdrom \
     -boot menu=on \
     -serial none \
@@ -433,12 +433,16 @@ boot_windows_vm(){
   tmux new-session -d -s "${VM_NAME}_session"
   tmux send-keys -t "${VM_NAME}_session" "sudo qemu-system-x86_64 \
     -machine accel=kvm,type=q35 \
-    -cpu host,kvm="off",hv_vendor_id="null" \
+    -cpu host,kvm="off",hv_vendor_id="null",check="off",hypervisor="off" \
     -smp $SMP,sockets="$SOCKETS",cores="$PHYSICAL_CORES",threads="$THREADS",maxcpus=$SMP \
     -m "$MEMORY" \
-    -drive id=disk0,if=virtio,cache=none,format=qcow2,file=hdd.img \
-    -drive id=disk1,if=virtio,cache=none,format=qcow2,file=hdd2.img \
-    -drive file=Win10_22H2_EnglishInternational_x64.iso,index=1,media=cdrom \
+    -object iothread,id=io${VNC_PORT} \
+    -object iothread,id=ioGames \
+    -device virtio-blk-pci,drive=disk${VNC_PORT},iothread=io${VNC_PORT} \
+    -device virtio-blk-pci,drive=diskGames,iothread=ioGames \
+    -drive if=none,id=disk${VNC_PORT},cache=none,format=qcow2,aio=threads,file=hdd.img \
+    -drive if=none,id=diskGames,cache=none,format=qcow2,aio=threads,file=/mnt/raid1/hdd2.img \
+    -drive file=Win10.iso,index=1,media=cdrom \
     -drive file=virtio-win-0.1.215.iso,index=2,media=cdrom \
     -boot menu=on \
     -serial none \
@@ -459,7 +463,9 @@ create_user_data(){
 
   cd ..
 
-  wget -O cloud-init-template.yaml "${CLOUD_INIT_TEMPLATE}"
+  if [[ "$LOCAL_TEMPLATE" == "false" ]]; then
+  	wget -O cloud-init-template.yaml "${CLOUD_INIT_TEMPLATE}"
+  fi
 
   docker run -it -v $(pwd)/cloud-init-template.yaml:/cloud-init-template.yaml \
     -v $(pwd)/$VM_NAME:/output \
@@ -481,7 +487,7 @@ create-windows-vm(){
   set_vnc
   create_dir
   create_virtual_disk
-  qemu-img create -f qcow2 hdd2.img 256G
+  qemu-img create -f qcow2 hdd2.img 512G
   create_windows_vm
 }
 
