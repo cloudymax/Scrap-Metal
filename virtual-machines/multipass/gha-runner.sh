@@ -1,7 +1,7 @@
 #!/bin/bash
 base_api_url="https://api.github.com"
-token=$1
-repo="cloudymax/pxeless"
+token=$2
+repo=$1
 runner_plat=linux
 
 export RUNNER_TOKEN=$(curl -s -X POST ${base_api_url}/repos/cloudymax/pxeless/actions/runners/registration-token -H "accept: application/vnd.github.everest-preview+json" -H "authorization: token ${token}" | jq -r '.token')
