@@ -60,12 +60,14 @@ read_config(){
   export GPU_VENDOR=$(cat ${VM_NAME}/config.yaml | yq '.GPU.GPU_VENDOR')
   export GPU_TESLA=$(cat ${VM_NAME}/config.yaml | yq '.GPU.GPU_TESLA')
   export GPU_PCI_ID=$(cat ${VM_NAME}/config.yaml | yq '.GPU.GPU_PCI_ID')
+  export VGPU_ENABLED=$(cat ${VM_NAME}/config.yaml | yq '.GPU.VGPU_ENABLED')
+  export VGPU_UUID=$(cat ${VM_NAME}/config.yaml | yq '.GPU.VGPU_UUID')
 
   # IMAGE OPTIONS
   export CLOUD_IMAGE_URL=$(cat ${VM_NAME}/config.yaml | yq '.IMAGE.CLOUD_IMAGE_URL')
   export CLOUD_IMAGE_NAME=$(basename -- "$CLOUD_IMAGE_URL")
   export CLOUD_INIT_TEMPLATE=$(cat ${VM_NAME}/config.yaml | yq '.IMAGE.CLOUD_INIT_TEMPLATE')
-  export LOCAL_TEMPLATE$(cat ${VM_NAME}/config.yaml | yq '.IMAGE.LOCAL_TEMPLATE')
+  export LOCAL_TEMPLATE=$(cat ${VM_NAME}/config.yaml | yq '.IMAGE.LOCAL_TEMPLATE')
   export LOCAL_TEMPLATE_PATH=$(cat ${VM_NAME}/config.yaml | yq '.IMAGE.LOCAL_TEMPLATE_PATH')
   export ISO_FILE=$(cat ${VM_NAME}/config.yaml | yq '.IMAGE.ISO_FILE')
 
@@ -98,7 +100,7 @@ set_network(){
     # a bridge device to host the Tap interface. If a bride i not found, one is created and
     # given control of the host machines IP address and Network Interface.
     BRIDGE_EXISTS=$(sudo brctl show |grep -w -c "$BRIDGE_NAME")
-    
+
     if [ "$BRIDGE_EXISTS" -gt "0" ]; then
         echo "bridge exists"
     else
@@ -112,7 +114,7 @@ set_network(){
         sudo ip route add default via "$IP_GATEWAY" dev "$BRIDGE_NAME"
     fi
 
-    # Creates a new Tap interface if one matching the specified TAP_DEVICE_NUMBER 
+    # Creates a new Tap interface if one matching the specified TAP_DEVICE_NUMBER
     # does not yet exist.
     TAP_EXISTS=$(sudo brctl show |grep -c "tap$TAP_DEVICE_NUMBER")
     if [ "$TAP_EXISTS" -gt "0" ]; then
@@ -126,12 +128,12 @@ set_network(){
         sudo brctl show
         sudo sysctl -w net.ipv4.ip_forward=1
     fi
-    # Export the network options for the qemu command 
+    # Export the network options for the qemu command
     export DEVICE="-device virtio-net-pci,netdev=network$NETWORK_NUMBER,mac=$MAC_ADDR \\"
     export NETDEV="-netdev tap,id=network$NETWORK_NUMBER,ifname=tap$TAP_DEVICE_NUMBER,script=no,downscript=no \\"
 
   else
-    # Export the network options for the qemu command 
+    # Export the network options for the qemu command
     log " - Port Forwarding selected."
     export DEVICE="-device virtio-net-pci,netdev=network$NETWORK_NUMBER \\"
     export NETDEV="-netdev user,id=network$NETWORK_NUMBER,hostfwd=tcp::"${VM_SSH_PORT}"-:"${HOST_SSH_PORT}" \\"
@@ -149,15 +151,21 @@ set_gpu(){
     log " - GPU not attached"
   else
     export VGA_OPT="-vga none -serial stdio -parallel none \\"
-    
+
     if [[ "$GPU_TESLA" == "false" ]]; then
-        export PCI_GPU="-device vfio-pci,host=${GPU_PCI_ID},multifunction=on,x-vga=on \\ "
+
+        if [[ "$VGPU_ENABLED" == "false" ]]; then
+            export PCI_GPU="-device vfio-pci,host=${GPU_PCI_ID},multifunction=on,x-vga=on \\"
+        else
+            export VGPU="/sys/bus/mdev/devices/$VGPU_UUID"
+            export PCI_GPU="-device vfio-pci,sysfsdev=${VGPU} -uuid $(uuidgen) \\"
+        fi
     fi
-     
+
     if [[ "$GPU_TESLA" == "true" ]]; then
         export PCI_GPU="-device vfio-pci,host=${GPU_PCI_ID},multifunction=on -fw_cfg name=opt/ovmf/X-PciMmio64Mb,string=65536 \\"
     fi
-    
+
     log " - GPU attached"
   fi
 }
@@ -174,7 +182,7 @@ download_cloud_image(){
     wget -c -O "$CLOUD_IMAGE_NAME" "$CLOUD_IMAGE_URL" -q --show-progress
 }
 
-# Expand the size of the disk image 
+# Expand the size of the disk image
 expand_cloud_image(){
   log "📈 Expanding image"
 
@@ -231,7 +239,7 @@ create_dir(){
 # create a disk
 create_virtual_disk(){
   log "💾 Creating virtual disk"
-  qemu-img create -f qcow2 hdd.img $DISK_SIZE &>/dev/null
+  qemu-img create -f qcow2 disk.qcow2 $DISK_SIZE &>/dev/null
   log " - Done!"
 }
 
@@ -314,7 +322,7 @@ create_vm_from_iso(){
     -cdrom $ISO_FILE \
     -object iothread,id=io1 \
     -device virtio-blk-pci,drive=disk0,iothread=io1 \
-    -drive if=none,id=disk0,cache=none,format=qcow2,aio=threads,file=hdd.img \
+    -drive if=none,id=disk0,cache=none,format=qcow2,aio=threads,file=disk.qcow2 \
     $NETDEV
     $DEVICE
     $VGA_OPT
@@ -336,7 +344,7 @@ boot_vm_from_iso(){
     -m "$MEMORY" \
     -object iothread,id=io1 \
     -device virtio-blk-pci,drive=disk0,iothread=io1 \
-    -drive if=none,id=disk0,cache=none,format=qcow2,aio=threads,file=hdd.img \
+    -drive if=none,id=disk0,cache=none,format=qcow2,aio=threads,file=disk.qcow2 \
     -device intel-hda \
     -device hda-duplex \
     $PCI_GPU
@@ -413,8 +421,8 @@ create_windows_vm(){
     -cpu host,kvm="off",hv_vendor_id="null" \
     -smp $SMP,sockets="$SOCKETS",cores="$PHYSICAL_CORES",threads="$THREADS",maxcpus=$SMP \
     -m "$MEMORY" \
-    -drive id=disk0,if=virtio,cache=none,format=qcow2,file=hdd.img \
-    -drive file=Win10.iso,index=1,media=cdrom \
+    -drive id=disk${VNC_PORT},if=virtio,cache=none,format=qcow2,file=disk.qcow2 \
+    -drive file=Win10-2.iso,index=1,media=cdrom \
     -drive file=virtio-win-0.1.215.iso,index=2,media=cdrom \
     -boot menu=on \
     -serial none \
@@ -437,13 +445,13 @@ boot_windows_vm(){
     -smp $SMP,sockets="$SOCKETS",cores="$PHYSICAL_CORES",threads="$THREADS",maxcpus=$SMP \
     -m "$MEMORY" \
     -object iothread,id=io${VNC_PORT} \
-    -object iothread,id=ioGames \
     -device virtio-blk-pci,drive=disk${VNC_PORT},iothread=io${VNC_PORT} \
-    -device virtio-blk-pci,drive=diskGames,iothread=ioGames \
-    -drive if=none,id=disk${VNC_PORT},cache=none,format=qcow2,aio=threads,file=hdd.img \
-    -drive if=none,id=diskGames,cache=none,format=qcow2,aio=threads,file=/mnt/raid1/hdd2.img \
-    -drive file=Win10.iso,index=1,media=cdrom \
+    -drive if=none,id=disk${VNC_PORT},cache=none,format=qcow2,aio=threads,file=disk.qcow2 \
+    -drive file=${ISO_FILE},index=1,media=cdrom \
     -drive file=virtio-win-0.1.215.iso,index=2,media=cdrom \
+    -object iothread,id=ioGames \
+    -device virtio-blk-pci,drive=diskGames,iothread=ioGames \
+    -drive if=none,id=diskGames,cache=none,format=qcow2,aio=threads,file=/mnt/raid1/hdd2-2.img \
     -boot menu=on \
     -serial none \
     -parallel none \
@@ -464,7 +472,7 @@ create_user_data(){
   cd ..
 
   if [[ "$LOCAL_TEMPLATE" == "false" ]]; then
-  	wget -O cloud-init-template.yaml "${CLOUD_INIT_TEMPLATE}"
+        wget -O cloud-init-template.yaml "${CLOUD_INIT_TEMPLATE}"
   fi
 
   docker run -it -v $(pwd)/cloud-init-template.yaml:/cloud-init-template.yaml \
