@@ -316,7 +316,7 @@ create_vm_from_iso(){
   tmux new-session -d -s "${VM_NAME}_session"
   tmux send-keys -t "${VM_NAME}_session" "sudo qemu-system-x86_64 \
     -machine accel=kvm,type=q35 \
-    -cpu host,kvm="off",hv_vendor_id="null" \
+    -cpu host,kvm="off",hv_vendor_id="null",+topoext \
     -smp $SMP,sockets="$SOCKETS",cores="$PHYSICAL_CORES",threads="$THREADS",maxcpus=$SMP \
     -m "$MEMORY" \
     -cdrom $ISO_FILE \
@@ -339,7 +339,7 @@ boot_vm_from_iso(){
   tmux new-session -d -s "${VM_NAME}_session"
   tmux send-keys -t "${VM_NAME}_session" "sudo qemu-system-x86_64 \
     -machine accel=kvm,type=q35 \
-    -cpu host,kvm="off",hv_vendor_id="null" \
+    -cpu host,kvm="off",hv_vendor_id="null",+topoext \
     -smp $SMP,sockets="$SOCKETS",cores="$PHYSICAL_CORES",threads="$THREADS",maxcpus=$SMP \
     -m "$MEMORY" \
     -object iothread,id=io1 \
@@ -367,7 +367,7 @@ create_ubuntu_cloud_vm(){
     tmux new-session -d -s "${VM_NAME}_session"
     tmux send-keys -t "${VM_NAME}_session" "sudo qemu-system-x86_64 \
       -machine accel=kvm,type=q35 \
-      -cpu host \
+      -cpu host,+topoext \
       -smp $SMP,sockets="$SOCKETS",cores="$PHYSICAL_CORES",threads="$THREADS",maxcpus=$SMP \
       -m "$MEMORY" \
       $VGA_OPT
@@ -394,7 +394,7 @@ boot_ubuntu_cloud_vm(){
     tmux new-session -d -s "${VM_NAME}_session"
     tmux send-keys -t "${VM_NAME}_session" "sudo qemu-system-x86_64 \
       -machine accel=kvm,type=q35 \
-      -cpu host \
+      -cpu host,+topoext \
       -smp $SMP,sockets="$SOCKETS",cores="$PHYSICAL_CORES",threads="$THREADS",maxcpus=$SMP \
       -m "$MEMORY" \
       $VGA_OPT
@@ -418,7 +418,7 @@ create_windows_vm(){
   tmux new-session -d -s "${VM_NAME}_session"
   tmux send-keys -t "${VM_NAME}_session" "sudo qemu-system-x86_64 \
     -machine accel=kvm,type=q35 \
-    -cpu host,kvm="off",hv_vendor_id="null" \
+    -cpu host,kvm="off",hv_vendor_id="null",+topoext \
     -smp $SMP,sockets="$SOCKETS",cores="$PHYSICAL_CORES",threads="$THREADS",maxcpus=$SMP \
     -m "$MEMORY" \
     -drive id=disk${VNC_PORT},if=virtio,cache=none,format=qcow2,file=disk.qcow2 \
@@ -441,7 +441,7 @@ boot_windows_vm(){
   tmux new-session -d -s "${VM_NAME}_session"
   tmux send-keys -t "${VM_NAME}_session" "sudo qemu-system-x86_64 \
     -machine accel=kvm,type=q35 \
-    -cpu host,kvm="off",hv_vendor_id="null",check="off",hypervisor="off" \
+    -cpu host,kvm="off",hv_vendor_id="null",check="off",hypervisor="off",+topoext \
     -smp $SMP,sockets="$SOCKETS",cores="$PHYSICAL_CORES",threads="$THREADS",maxcpus=$SMP \
     -m "$MEMORY" \
     -object iothread,id=io${VNC_PORT} \
